@@ -1,0 +1,6 @@
+rootProject.name = 'converter-kotlin'
+include 'utils'
+include 'xml-writer-dsl'
+include 'excel-converter'
+include 'xml-data-generator'
+
