@@ -12,23 +12,33 @@ import java.io.File
 import java.io.InputStream
 import javax.xml.parsers.SAXParserFactory
 
-class ExcelReader(val xlsxPackage: OPCPackage, val sheetContentsHandler: XSSFSheetXMLHandler.SheetContentsHandler) {
+class ExcelReader(val xlsxPackage: OPCPackage, val sheetContentsHandler: ExcelWorkSheetHandler,
+                  val cursor: Cursor = Cursor()) {
 
     companion object : KLogging()
 
-    constructor(filePath: String, sheetContentsHandler: XSSFSheetXMLHandler.SheetContentsHandler) : this(OPCPackage.open(filePath, PackageAccess.READ), sheetContentsHandler)
-    constructor(inputStream: InputStream, sheetContentsHandler: XSSFSheetXMLHandler.SheetContentsHandler) : this(OPCPackage.open(inputStream), sheetContentsHandler)
-    constructor(file: File, sheetContentsHandler: XSSFSheetXMLHandler.SheetContentsHandler) : this(OPCPackage.open(file), sheetContentsHandler)
+    constructor(filePath: String, sheetContentsHandler: ExcelWorkSheetHandler, cursor: Cursor = Cursor()) : this(OPCPackage
+            .open(filePath, PackageAccess.READ), sheetContentsHandler, cursor)
+    constructor(inputStream: InputStream, sheetContentsHandler: ExcelWorkSheetHandler, cursor: Cursor = Cursor()) : this
+    (OPCPackage.open(inputStream), sheetContentsHandler, cursor)
+    constructor(file: File, sheetContentsHandler: ExcelWorkSheetHandler, cursor: Cursor = Cursor()) : this(OPCPackage.open
+    (file), sheetContentsHandler, cursor)
 
-    fun read() {
+    fun read(skipSheets: List<Int> = emptyList()) {
+        sheetContentsHandler.cursor = cursor
         val strings = ReadOnlySharedStringsTable(this.xlsxPackage)
         val xssfReader = XSSFReader(this.xlsxPackage)
         val worksheets = xssfReader.sheetsData as XSSFReader.SheetIterator
 
+        cursor.sheetNumber = 0
         worksheets.forEach { inputStream ->
             logger.info { "start new sheet '${worksheets.sheetName}'" }
-            inputStream.use {
-                readSheet(xssfReader.stylesTable, strings, inputStream)
+            cursor.sheetNumber++
+            cursor.sheetName = worksheets.sheetName
+            if(cursor.sheetNumber !in skipSheets) {
+                inputStream.use {
+                    readSheet(xssfReader.stylesTable, strings, inputStream)
+                }
             }
             logger.info { "finish sheet '${worksheets.sheetName}'" }
         }
