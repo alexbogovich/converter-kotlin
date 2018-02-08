@@ -1,8 +1,8 @@
 package com.bogovich.excel
 
-import com.bogovich.utils.OPCPackageUtils
 import mu.KLogging
 import org.apache.poi.openxml4j.opc.OPCPackage
+import org.apache.poi.openxml4j.opc.PackageAccess
 import org.apache.poi.xssf.eventusermodel.ReadOnlySharedStringsTable
 import org.apache.poi.xssf.eventusermodel.XSSFReader
 import org.apache.poi.xssf.eventusermodel.XSSFSheetXMLHandler
@@ -16,10 +16,9 @@ class ExcelReader(val xlsxPackage: OPCPackage, val sheetContentsHandler: XSSFShe
 
     companion object : KLogging()
 
-    constructor(filePath: String, sheetContentsHandler: XSSFSheetXMLHandler.SheetContentsHandler) : this(OPCPackageUtils.getOPCPackage(filePath), sheetContentsHandler)
-    constructor(inputStream: InputStream, sheetContentsHandler: XSSFSheetXMLHandler.SheetContentsHandler) : this(OPCPackageUtils.getOPCPackage(inputStream), sheetContentsHandler)
-    constructor(file: File, sheetContentsHandler: XSSFSheetXMLHandler.SheetContentsHandler) : this(OPCPackageUtils.getOPCPackage(file), sheetContentsHandler)
-
+    constructor(filePath: String, sheetContentsHandler: XSSFSheetXMLHandler.SheetContentsHandler) : this(OPCPackage.open(filePath, PackageAccess.READ), sheetContentsHandler)
+    constructor(inputStream: InputStream, sheetContentsHandler: XSSFSheetXMLHandler.SheetContentsHandler) : this(OPCPackage.open(inputStream), sheetContentsHandler)
+    constructor(file: File, sheetContentsHandler: XSSFSheetXMLHandler.SheetContentsHandler) : this(OPCPackage.open(file), sheetContentsHandler)
 
     fun read() {
         val strings = ReadOnlySharedStringsTable(this.xlsxPackage)
@@ -37,7 +36,7 @@ class ExcelReader(val xlsxPackage: OPCPackage, val sheetContentsHandler: XSSFShe
 
     private fun readSheet(stylesTable: StylesTable, strings: ReadOnlySharedStringsTable, inputStream: InputStream) {
         val sheetsParser = SAXParserFactory.newInstance().newSAXParser().xmlReader
-        sheetsParser.contentHandler = XSSFSheetXMLHandler(stylesTable, strings, sheetContentsHandler, true)
+        sheetsParser.contentHandler = XSSFSheetXMLHandler(stylesTable, strings, sheetContentsHandler, false)
         sheetsParser.parse(InputSource(inputStream))
     }
 }

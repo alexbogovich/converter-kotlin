@@ -31,7 +31,7 @@ class ExcelWorkSheetHandler: XSSFSheetXMLHandler.SheetContentsHandler {
     }
 
     override fun cell(cellReference: String?, formattedValue: String?, comment: XSSFComment?) {
-        logger.info { "cell cellReference = $cellReference formattedValue = $formattedValue comment = $comment" }
+        logger.info { "cell cellReference = $cellReference formattedValue = $formattedValue" }
         if (this::cellCallback.isInitialized) {
             cellCallback.invoke(cellReference!!, formattedValue!!)
         }
