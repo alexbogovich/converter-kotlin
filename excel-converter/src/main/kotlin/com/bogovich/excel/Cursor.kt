@@ -14,4 +14,10 @@ data class Cursor(
         META,
         STREAM
     }
+
+    fun saveStreamToMeta() {
+        streamData.forEach({ key, value ->
+            metaData["$key$rowNumber#$sheetNumber"] = value
+        })
+    }
 }

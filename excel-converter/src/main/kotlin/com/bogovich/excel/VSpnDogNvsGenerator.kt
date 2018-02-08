@@ -20,13 +20,17 @@ class Reader {
         workSheetHandler.cellCallback = { cursor ->
             map.add(cursor.reference to cursor.value)
         }
-        workSheetHandler.rowStartCallback =  { cursor ->
+        workSheetHandler.rowStartCallback = { cursor ->
             if (cursor.rowNumber == 16) {
                 cursor.mode = Cursor.ReadMode.STREAM
             }
         }
         workSheetHandler.rowEndCallback = { cursor ->
-            if( cursor.mode == Cursor.ReadMode.STREAM ) {
+            if (cursor.streamData["A"].isNullOrEmpty()) {
+                cursor.mode = Cursor.ReadMode.META
+                cursor.saveStreamToMeta()
+            }
+            if (cursor.mode == Cursor.ReadMode.STREAM) {
                 println("STREAM ${cursor.streamData}")
             }
         }

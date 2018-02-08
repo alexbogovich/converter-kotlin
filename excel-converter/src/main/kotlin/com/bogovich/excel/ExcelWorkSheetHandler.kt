@@ -51,7 +51,7 @@ class ExcelWorkSheetHandler() : XSSFSheetXMLHandler.SheetContentsHandler {
             if (mode == Cursor.ReadMode.META) {
                 metaData["$reference#$sheetNumber"] = value
             } else if (mode == Cursor.ReadMode.STREAM) {
-                val refPrefix = reference.replace("[0-9]", "")
+                val refPrefix = reference.replace("[0-9]+".toRegex(), "")
                 streamData[refPrefix] = value
             }
         }
