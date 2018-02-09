@@ -7,7 +7,9 @@ data class Checkpoint(private val startCheck: CheckStatement,
                       private val endCheck: CheckStatement,
                       private val callback: WriterWithCursor,
                       val type: Type = Type.PRE,
-                      var state: State = State.NEW
+                      var state: State = State.NEW,
+                      val prepareCallback: () -> Unit = {},
+                      val endCallback: () -> Unit = {}
 ) {
 
     companion object : KLogging()
@@ -22,6 +24,9 @@ data class Checkpoint(private val startCheck: CheckStatement,
             if (state == State.NEW) {
                 logger.info { "open state" }
                 state = State.USE
+                if (cursor.mode == Cursor.ReadMode.STREAM) {
+                    prepareCallback()
+                }
             }
             if (cursor.mode == Cursor.ReadMode.STREAM) {
                 callback(xmlWriter, cursor)
@@ -36,6 +41,7 @@ data class Checkpoint(private val startCheck: CheckStatement,
                     }
                 } else {
                     logger.info { "close state" }
+                    endCallback()
                     state = State.CLOSE
                 }
                 if( cursor.mode == Cursor.ReadMode.STREAM) {

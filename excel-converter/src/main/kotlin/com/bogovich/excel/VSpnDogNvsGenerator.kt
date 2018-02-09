@@ -41,14 +41,13 @@ class Reader {
                             "ИНН" tag cursor.metaData["D9#1"].orEmpty()
                         }
                     }
-                    "СписокСведений" tag {
-                        stream(converter,
-                                { cursor -> cursor.rowNumber >= 16 && cursor.sheetNumber == 1 },
-                                { cursor -> cursor.streamData["A"].isNullOrBlank() }
-                        ) { cursor ->
-                            "нум" tag 1
-                        }
-
+                    stream(converter,
+                            { cursor -> cursor.rowNumber >= 16 && cursor.sheetNumber == 1 },
+                            { cursor -> cursor.streamData["A"].isNullOrBlank() },
+                            { writeStartElement("СписокСведений") },
+                            { writeEndElement() }
+                    ) { cursor ->
+                        "нум" tag 1
                     }
                     reader.read()
                 }
@@ -61,35 +60,40 @@ class Reader {
 
 
 fun DslXMLStreamWriter.meta(converter: Converter, startRow: Int = 0, startSheet: Int = 1, endRow: Int, endSheet: Int = 1, metaCallback: WriterWithCursor) {
-    converter.meta({ cursor -> cursor.isCheckpoint(startRow, startSheet) },
+    converter.meta(Checkpoint({ cursor -> cursor.isCheckpoint(startRow, startSheet) },
             { cursor -> cursor.isCheckpoint(endRow, endSheet) },
-            metaCallback)
+            metaCallback))
 }
 
 fun DslXMLStreamWriter.meta(converter: Converter, startRow: Int = 0, startSheet: Int = 1, endCheck: CheckStatement, metaCallback: WriterWithCursor) {
-    converter.meta({ cursor -> cursor.isCheckpoint(startRow, startSheet) }, endCheck, metaCallback, Checkpoint.Type.POST)
+    converter.meta(Checkpoint({ cursor -> cursor.isCheckpoint(startRow, startSheet) }, endCheck, metaCallback, Checkpoint.Type.POST))
 }
 
 fun DslXMLStreamWriter.meta(converter: Converter, startCheck: CheckStatement, endRow: Int, endSheet: Int = 1, metaCallback: WriterWithCursor) {
-    converter.meta(startCheck, { cursor -> cursor.isCheckpoint(endRow, endSheet) }, metaCallback, Checkpoint.Type.POST)
+    converter.meta(Checkpoint(startCheck, { cursor -> cursor.isCheckpoint(endRow, endSheet) }, metaCallback, Checkpoint.Type.POST))
 }
 
 
-fun DslXMLStreamWriter.stream(converter: Converter, startRow: Int = 0, startSheet: Int = 1, endRow: Int, endSheet: Int = 1, streamCallback:
+fun DslXMLStreamWriter.stream(converter: Converter, startRow: Int = 0, startSheet: Int = 1, endRow: Int, endSheet: Int = 1, prepareCallback: () -> Unit = {}, endCallback: () -> Unit = {}, streamCallback:
 WriterWithCursor) {
-    converter.stream({ cursor -> cursor.isCheckpoint(startRow, startSheet) },
+    converter.stream(Checkpoint({ cursor -> cursor.isCheckpoint(startRow, startSheet) },
             { cursor -> cursor.isCheckpoint(endRow, endSheet) },
-            streamCallback)
+            streamCallback,
+            prepareCallback = prepareCallback,
+            endCallback = endCallback))
 }
 
 fun DslXMLStreamWriter.stream(converter: Converter, startRow: Int = 0, startSheet: Int = 1, endCheck: CheckStatement, streamCallback: WriterWithCursor) {
-    converter.stream({ cursor -> cursor.isCheckpoint(startRow, startSheet) }, endCheck, streamCallback, Checkpoint.Type.POST)
+    converter.stream(Checkpoint({ cursor -> cursor.isCheckpoint(startRow, startSheet) }, endCheck, streamCallback,
+            Checkpoint.Type.POST))
 }
 
 fun DslXMLStreamWriter.stream(converter: Converter, startCheck: CheckStatement, endRow: Int, endSheet: Int = 1, streamCallback: WriterWithCursor) {
-    converter.stream(startCheck, { cursor -> cursor.isCheckpoint(endRow, endSheet) }, streamCallback, Checkpoint.Type.POST)
+    converter.stream(Checkpoint(startCheck, { cursor -> cursor.isCheckpoint(endRow, endSheet) }, streamCallback,
+            Checkpoint.Type.POST))
 }
 
-fun DslXMLStreamWriter.stream(converter: Converter, startCheck: CheckStatement, endCheck: CheckStatement, streamCallback: WriterWithCursor) {
-    converter.stream(startCheck, endCheck, streamCallback, Checkpoint.Type.POST)
+fun DslXMLStreamWriter.stream(converter: Converter, startCheck: CheckStatement, endCheck: CheckStatement,
+                              prepareCallback: () -> Unit = {}, endCallback: () -> Unit = {}, streamCallback: WriterWithCursor) {
+    converter.stream(Checkpoint(startCheck, endCheck, streamCallback, Checkpoint.Type.POST, prepareCallback = prepareCallback, endCallback =  endCallback))
 }

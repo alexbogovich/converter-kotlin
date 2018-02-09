@@ -10,14 +10,12 @@ class Converter(val xmlWriter: DslXMLStreamWriter) {
     val checkpointsMeta = mutableListOf<Checkpoint>()
     val checkpointsStream = mutableListOf<Checkpoint>()
 
-    fun meta(startCheck: CheckStatement, endCheck: CheckStatement, metaCallback: WriterWithCursor, type: Checkpoint
-    .Type = Checkpoint.Type.PRE) {
-        checkpointsMeta.add(Checkpoint(startCheck, endCheck, metaCallback, type))
+    fun meta(checkpoint: Checkpoint) {
+        checkpointsMeta.add(checkpoint)
     }
 
-    fun stream(startCheck: CheckStatement, endCheck: CheckStatement, streamCallback: WriterWithCursor, type: Checkpoint
-    .Type = Checkpoint.Type.PRE) {
-        checkpointsStream.add(Checkpoint(startCheck, endCheck, streamCallback, type))
+    fun stream(checkpoint: Checkpoint) {
+        checkpointsStream.add(checkpoint)
     }
 
     fun setUp(workSheetHandler: ExcelWorkSheetHandler) {
