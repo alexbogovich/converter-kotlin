@@ -24,4 +24,8 @@ data class Cursor(
     fun isCheckpoint(checkRowNum: Int, checkSheetNumber: Int): Boolean {
         return rowNumber == checkRowNum && checkSheetNumber == sheetNumber
     }
+
+    fun cell(ref: String): String {
+        return streamData[ref].orEmpty()
+    }
 }

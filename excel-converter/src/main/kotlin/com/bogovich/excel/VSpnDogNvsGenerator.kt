@@ -41,13 +41,53 @@ class Reader {
                             "ИНН" tag cursor.metaData["D9#1"].orEmpty()
                         }
                     }
+                    var count: Long = 0
                     stream(converter,
                             { cursor -> cursor.rowNumber >= 16 && cursor.sheetNumber == 1 },
                             { cursor -> cursor.streamData["A"].isNullOrBlank() },
                             { writeStartElement("СписокСведений") },
                             { writeEndElement() }
                     ) { cursor ->
-                        "нум" tag 1
+                        "Запись" tag {
+                            "НомерПП" tag ++count
+                            "ЗЛ" tag {
+                                "ФИО" tag {
+                                    "Фамилия" tag cursor.cell("B")
+                                    "Имя" tag cursor.cell("C")
+                                    "Отчество" tag cursor.cell("D")
+                                }
+                                "Пол" tag cursor.cell("G")
+                                "ДатаРождения" tag cursor.cell("E")
+                                "МестоРождения" tag {
+                                    "ТипМестаРождения" tag "СТАНДАРТНОЕ"
+                                    "ГородРождения" tag cursor.cell("F")
+                                    "СтранаРождения" tag "РФ"
+                                }
+                                "СтраховойНомер" tag "${cursor.cell("H")} ${cursor.cell("I")}"
+                            }
+                            "СуммыПереданные" tag {
+                                "СВ" tag {
+                                    "Сумма" tag cursor.cell("J")
+                                    "ИД" tag cursor.cell("K")
+                                }
+                                "ДСВ" tag {
+                                    "Сумма" tag cursor.cell("L")
+                                    "ИД" tag cursor.cell("M")
+                                }
+                                "СОФН" tag {
+                                    "Сумма" tag cursor.cell("N")
+                                    "ИД" tag cursor.cell("O")
+                                }
+                                "МСК" tag {
+                                    "Сумма" tag cursor.cell("P")
+                                    "ИД" tag cursor.cell("Q")
+                                }
+                                "ВсегоСПН" tag cursor.cell("R")
+                            }
+                            "ГарантийноеВосполнение" tag cursor.cell("S")
+                            "Компенсация" tag cursor.cell("T")
+                            "ВсегоПередано" tag cursor.cell("U")
+                        }
                     }
                     reader.read()
                 }
