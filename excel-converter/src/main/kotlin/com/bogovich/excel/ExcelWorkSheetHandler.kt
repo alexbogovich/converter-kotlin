@@ -4,14 +4,14 @@ import mu.KLogging
 import org.apache.poi.xssf.eventusermodel.XSSFSheetXMLHandler
 import org.apache.poi.xssf.usermodel.XSSFComment
 
-class ExcelWorkSheetHandler() : XSSFSheetXMLHandler.SheetContentsHandler {
+class ExcelWorkSheetHandler : XSSFSheetXMLHandler.SheetContentsHandler {
 
     companion object: KLogging()
 
     lateinit var cursor: Cursor
-    lateinit var rowEndCallback: (cursor: Cursor) -> Unit
-    lateinit var rowStartCallback: (cursor: Cursor) -> Unit
-    lateinit var cellCallback: (cursor: Cursor) -> Unit
+    lateinit var rowEndCallback: CursorOperation
+    lateinit var rowStartCallback: CursorOperation
+    lateinit var cellCallback: CursorOperation
 
     override fun endRow(rowNum: Int) {
         logger.info { "endRow rowNum = $rowNum" }

@@ -10,28 +10,41 @@ class Converter(val xmlWriter: DslXMLStreamWriter) {
     val checkpointsMeta = mutableListOf<Checkpoint>()
     val checkpointsStream = mutableListOf<Checkpoint>()
 
-    fun meta(startRow: Int = 0, startSheet: Int = 1, endRow: Int, endSheet: Int = 1, meta: DslXMLStreamWriter.
-    (cursor: Cursor) -> Unit) {
-        meta({ cursor -> cursor.isCheckpoint(startRow, startSheet) },
-                { cursor -> cursor.isCheckpoint(endRow, endSheet) },
-                meta)
+//    fun meta(startRow: Int = 0, startSheet: Int = 1, endRow: Int, endSheet: Int = 1, metaCallback: writerLambdaWithCursor) {
+//        meta({ cursor -> cursor.isCheckpoint(startRow, startSheet) },
+//                { cursor -> cursor.isCheckpoint(endRow, endSheet) },
+//                metaCallback)
+//    }
+//
+//    fun meta(startRow: Int = 0, startSheet: Int = 1, endCheck: checkStatement, metaCallback: writerLambdaWithCursor) {
+//        meta({ cursor -> cursor.isCheckpoint(startRow, startSheet) }, endCheck, metaCallback)
+//    }
+//
+//    fun meta(startCheck: checkStatement, endRow: Int, endSheet: Int = 1, metaCallback: writerLambdaWithCursor) {
+//        meta(startCheck, { cursor -> cursor.isCheckpoint(endRow, endSheet) }, metaCallback)
+//    }
+
+    fun meta(startCheck: CheckStatement, endCheck: CheckStatement, metaCallback: WriterWithCursor) {
+        checkpointsMeta.add(Checkpoint(startCheck, endCheck, metaCallback))
     }
 
-    fun stream(startRow: Int = 0, startSheet: Int = 1, endRow: Int, endSheet: Int = 1, stream: DslXMLStreamWriter.
-    (cursor: Cursor) -> Unit) {
-        stream({ cursor -> cursor.isCheckpoint(startRow, startSheet) },
-                { cursor -> cursor.isCheckpoint(endRow, endSheet) },
-                stream)
-    }
+//    fun stream(startRow: Int = 0, startSheet: Int = 1, endRow: Int, endSheet: Int = 1, streamCallback:
+//    writerLambdaWithCursor) {
+//        stream({ cursor -> cursor.isCheckpoint(startRow, startSheet) },
+//                { cursor -> cursor.isCheckpoint(endRow, endSheet) },
+//                streamCallback)
+//    }
+//
+//    fun stream(startRow: Int = 0, startSheet: Int = 1, endCheck: checkStatement, streamCallback: writerLambdaWithCursor) {
+//        stream({ cursor -> cursor.isCheckpoint(startRow, startSheet) }, endCheck, streamCallback)
+//    }
+//
+//    fun stream(startCheck: checkStatement, endRow: Int, endSheet: Int = 1, streamCallback: writerLambdaWithCursor) {
+//        stream(startCheck, { cursor -> cursor.isCheckpoint(endRow, endSheet) }, streamCallback)
+//    }
 
-    fun meta(startCheck: (cursor: Cursor) -> Boolean, endCheck: (cursor: Cursor) -> Boolean, meta: DslXMLStreamWriter.
-    (cursor: Cursor) -> Unit) {
-        checkpointsMeta.add(Checkpoint(startCheck, endCheck, meta))
-    }
-
-    fun stream(startCheck: (cursor: Cursor) -> Boolean, endCheck: (cursor: Cursor) -> Boolean, stream: DslXMLStreamWriter.
-    (cursor: Cursor) -> Unit) {
-        checkpointsStream.add(Checkpoint(startCheck, endCheck, stream))
+    fun stream(startCheck: CheckStatement, endCheck: CheckStatement, streamCallback: WriterWithCursor) {
+        checkpointsStream.add(Checkpoint(startCheck, endCheck, streamCallback))
     }
 
     fun setUp(workSheetHandler: ExcelWorkSheetHandler) {

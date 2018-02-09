@@ -2,9 +2,9 @@ package com.bogovich.excel
 
 import com.bogovich.xml.writer.dsl.DslXMLStreamWriter
 
-data class Checkpoint(private val startCheck: (cursor: Cursor) -> Boolean,
-                      private val endCheck: (cursor: Cursor) -> Boolean,
-                      private val callback: DslXMLStreamWriter.(cursor: Cursor) -> Unit
+data class Checkpoint(private val startCheck: CheckStatement,
+                      private val endCheck: CheckStatement,
+                      private val callback: WriterWithCursor
 ) {
     fun check(cursor: Cursor): Boolean {
         return startCheck(cursor) && !endCheck(cursor)
