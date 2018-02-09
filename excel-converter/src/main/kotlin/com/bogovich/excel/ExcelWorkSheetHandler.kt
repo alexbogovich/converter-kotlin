@@ -16,7 +16,7 @@ class ExcelWorkSheetHandler() : XSSFSheetXMLHandler.SheetContentsHandler {
     override fun endRow(rowNum: Int) {
         logger.info { "endRow rowNum = $rowNum" }
         if (this::rowEndCallback.isInitialized) {
-            cursor.run(rowEndCallback)
+            rowEndCallback(cursor)
             if (cursor.mode == Cursor.ReadMode.STREAM) {
                 cursor.streamData.clear()
             }
@@ -38,7 +38,7 @@ class ExcelWorkSheetHandler() : XSSFSheetXMLHandler.SheetContentsHandler {
         }
 
         if (this::rowStartCallback.isInitialized) {
-            cursor.run(rowStartCallback)
+            rowStartCallback(cursor)
         }
     }
 
@@ -56,7 +56,7 @@ class ExcelWorkSheetHandler() : XSSFSheetXMLHandler.SheetContentsHandler {
             }
         }
         if (this::cellCallback.isInitialized) {
-            cursor.run(cellCallback)
+            cellCallback(cursor)
         }
 
     }
