@@ -20,4 +20,8 @@ data class Cursor(
             metaData["$key$rowNumber#$sheetNumber"] = value
         })
     }
+
+    fun isCheckpoint(checkRowNum: Int, checkSheetNumber: Int): Boolean {
+        return rowNumber == checkRowNum && checkSheetNumber == sheetNumber
+    }
 }
