@@ -2,6 +2,7 @@ package com.bogovich.excel
 
 import com.bogovich.xml.writer.dsl.DslXMLStreamWriter
 import mu.KLogging
+import java.math.BigDecimal
 import java.nio.file.Files
 import java.nio.file.Paths
 import javax.xml.stream.XMLOutputFactory
@@ -11,6 +12,7 @@ fun main(args: Array<String>) {
     reader.read()
 }
 
+data class Sum(var sum: BigDecimal = BigDecimal.ZERO, var id: BigDecimal = BigDecimal.ZERO)
 
 class Reader {
 
@@ -27,6 +29,19 @@ class Reader {
         converter.setUp(workSheetHandler)
         val reader = ExcelReader(inputStream, workSheetHandler, cursor)
 
+        val total = object {
+            var zlCount: Long = 0
+            val transferSums = object {
+                val sv = Sum()
+                val dsv = Sum()
+                val sofn = Sum()
+                val msk = Sum()
+                var total = BigDecimal.ZERO
+            }
+            var garanty = BigDecimal.ZERO
+            var compensation = BigDecimal.ZERO
+            var totalTransferid = BigDecimal.ZERO
+        }
 
         writer.document {
             "ЭДПФР" tag {
@@ -99,6 +114,11 @@ class Reader {
 }
 
 
+fun BigDecimal.addTo(sumTo: BigDecimal): BigDecimal {
+    sumTo.add(this)
+    return this
+}
+
 fun DslXMLStreamWriter.meta(converter: Converter, startRow: Int = 0, startSheet: Int = 1, endRow: Int, endSheet: Int = 1, metaCallback: WriterWithCursor) {
     converter.meta(Checkpoint({ cursor -> cursor.isCheckpoint(startRow, startSheet) },
             { cursor -> cursor.isCheckpoint(endRow, endSheet) },
@@ -135,5 +155,5 @@ fun DslXMLStreamWriter.stream(converter: Converter, startCheck: CheckStatement, 
 
 fun DslXMLStreamWriter.stream(converter: Converter, startCheck: CheckStatement, endCheck: CheckStatement,
                               prepareCallback: () -> Unit = {}, endCallback: () -> Unit = {}, streamCallback: WriterWithCursor) {
-    converter.stream(Checkpoint(startCheck, endCheck, streamCallback, Checkpoint.Type.POST, prepareCallback = prepareCallback, endCallback =  endCallback))
+    converter.stream(Checkpoint(startCheck, endCheck, streamCallback, Checkpoint.Type.POST, prepareCallback = prepareCallback, endCallback = endCallback))
 }
