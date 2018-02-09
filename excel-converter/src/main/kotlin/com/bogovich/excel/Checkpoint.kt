@@ -23,11 +23,21 @@ data class Checkpoint(private val startCheck: CheckStatement,
                 logger.info { "open state" }
                 state = State.USE
             }
-            callback(xmlWriter, cursor)
+            if (cursor.mode == Cursor.ReadMode.STREAM) {
+                callback(xmlWriter, cursor)
+            }
         } else {
             if (state == State.USE) {
-                logger.info { "close state" }
-                state = State.CLOSE
+                if (cursor.mode == Cursor.ReadMode.META) {
+                    if (endCheck(cursor)) {
+                        logger.info { "close state" }
+                        callback(xmlWriter, cursor)
+                        state = State.CLOSE
+                    }
+                } else {
+                    logger.info { "close state" }
+                    state = State.CLOSE
+                }
                 if( cursor.mode == Cursor.ReadMode.STREAM) {
                     logger.info { "switch to meta mode" }
                     cursor.mode = Cursor.ReadMode.META
@@ -36,16 +46,26 @@ data class Checkpoint(private val startCheck: CheckStatement,
         }
     }
 
+    fun writeAndClose(cursor: Cursor, xmlWriter: DslXMLStreamWriter) {
+        if (state == State.USE) {
+            logger.info { "write meta" }
+            callback(xmlWriter, cursor)
+            logger.info { "close meta" }
+            state = State.CLOSE
+        }
+    }
+
     enum class Type {
         POST,
         PRE
-    }
 
+    }
     enum class State {
         NEW,
         PREPARE_USE,
         USE,
         STOP_USE,
         CLOSE
+
     }
 }

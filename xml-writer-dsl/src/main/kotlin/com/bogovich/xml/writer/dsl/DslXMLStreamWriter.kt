@@ -1,13 +1,17 @@
 package com.bogovich.xml.writer.dsl
 
 import com.sun.xml.txw2.output.IndentingXMLStreamWriter
+import mu.KLogging
 import javax.xml.stream.XMLStreamWriter
 
 class DslXMLStreamWriter(writer: XMLStreamWriter?) : IndentingXMLStreamWriter(writer) {
+    companion object : KLogging()
+
     fun document(init: DslXMLStreamWriter.() -> Unit): DslXMLStreamWriter {
         this.writeStartDocument()
         this.init()
         this.writeEndDocument()
+        this.flush()
         return this
     }
 

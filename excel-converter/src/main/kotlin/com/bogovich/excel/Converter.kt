@@ -83,6 +83,9 @@ class Converter(val xmlWriter: DslXMLStreamWriter) {
 
             when (cursor.mode) {
                 Cursor.ReadMode.STREAM -> {
+                    checkpointsMeta
+                            .filter { it.state == Checkpoint.State.USE }
+                            .map { it.writeAndClose(cursor, xmlWriter) }
                     checkpointsStream
                             .filter { it.state == Checkpoint.State.USE || it.state == Checkpoint.State.NEW }
                             .map {

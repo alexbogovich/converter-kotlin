@@ -255,7 +255,6 @@ private fun serialize04(writer: DslXMLStreamWriter) {
             }
         }
     }
-    writer.flush()
 }
 
 fun getControlNumber(s: Long): String {
