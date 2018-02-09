@@ -6,7 +6,7 @@ import org.apache.poi.xssf.usermodel.XSSFComment
 
 class ExcelWorkSheetHandler : XSSFSheetXMLHandler.SheetContentsHandler {
 
-    companion object: KLogging()
+    companion object : KLogging()
 
     lateinit var cursor: Cursor
     lateinit var rowEndCallback: CursorOperation
@@ -17,10 +17,11 @@ class ExcelWorkSheetHandler : XSSFSheetXMLHandler.SheetContentsHandler {
         logger.info { "endRow rowNum = $rowNum" }
         if (this::rowEndCallback.isInitialized) {
             rowEndCallback(cursor)
-            if (cursor.mode == Cursor.ReadMode.STREAM) {
-                cursor.streamData.clear()
-            }
         }
+        if(cursor.mode == Cursor.ReadMode.META) {
+            cursor.saveStreamToMeta()
+        }
+        cursor.streamData.clear()
     }
 
     override fun headerFooter(text: String?, isHeader: Boolean, tagName: String?) {
@@ -48,12 +49,8 @@ class ExcelWorkSheetHandler : XSSFSheetXMLHandler.SheetContentsHandler {
         cursor.apply {
             reference = cellReference!!
             value = formattedValue!!
-            if (mode == Cursor.ReadMode.META) {
-                metaData["$reference#$sheetNumber"] = value
-            } else if (mode == Cursor.ReadMode.STREAM) {
-                val refPrefix = reference.replace("[0-9]+".toRegex(), "")
-                streamData[refPrefix] = value
-            }
+            val refPrefix = reference.replace("[0-9]+".toRegex(), "")
+            streamData[refPrefix] = value
         }
         if (this::cellCallback.isInitialized) {
             cellCallback(cursor)

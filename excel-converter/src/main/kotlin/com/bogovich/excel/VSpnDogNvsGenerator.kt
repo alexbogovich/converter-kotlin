@@ -18,23 +18,6 @@ class Reader {
         val inputStream = Files.newInputStream(Paths.get("C:/Users/aleksandr.bogovich/Desktop/my staff/practice/converter-kotlin/excel-converter/src/test/resources/РНПФ-01.xlsx"))
 
         val workSheetHandler = ExcelWorkSheetHandler()
-//        workSheetHandler.cellCallback = { cursor ->
-//            map.add(cursor.reference to cursor.value)
-//        }
-//        workSheetHandler.rowStartCallback = { cursor ->
-//            if (cursor.rowNumber == 16) {
-//                cursor.mode = Cursor.ReadMode.STREAM
-//            }
-//        }
-//        workSheetHandler.rowEndCallback = { cursor ->
-//            if (cursor.streamData["A"].isNullOrEmpty()) {
-//                cursor.mode = Cursor.ReadMode.META
-//                cursor.saveStreamToMeta()
-//            }
-//            if (cursor.mode == Cursor.ReadMode.STREAM) {
-//                println("STREAM ${cursor.streamData}")
-//            }
-//        }
         val cursor = Cursor()
         val converter = Converter(DslXMLStreamWriter(null))
         converter.setUp(workSheetHandler)
@@ -49,7 +32,10 @@ class Reader {
 
                     }
                     //{cursor -> cursor.streamData["A"].isNullOrBlank()}
-                    stream(converter, 16, 1, Int.MAX_VALUE, 1) { cursor ->
+                    stream(converter,
+                            {cursor -> cursor.rowNumber >= 16 && cursor.sheetNumber == 1 },
+                            {cursor -> cursor.streamData["A"].isNullOrBlank()}
+                    ) { cursor ->
 
                     }
                     reader.read()
@@ -62,23 +48,6 @@ class Reader {
 
 }
 
-//fun DslXMLStreamWriter.stream(converter: Converter,
-//                              startRow: Int,
-//                              startSheet: Int,
-//                              endRow: Int,
-//                              endSheet: Int,
-//                              init: writerLambdaWithCursor) {
-//    converter.stream(startRow, startSheet, endRow, endSheet, init)
-//}
-//
-//fun DslXMLStreamWriter.meta(converter: Converter,
-//                            startRow:Int = 0,
-//                            startSheet: Int = 1,
-//                            endRow: Int = Int.MAX_VALUE,
-//                            endSheet:Int = 1,
-//                            init: writerLambdaWithCursor) {
-//    converter.meta(startRow, startSheet, endRow, endSheet, init)
-//}
 
 fun DslXMLStreamWriter.meta(converter: Converter, startRow: Int = 0, startSheet: Int = 1, endRow: Int, endSheet: Int = 1, metaCallback: WriterWithCursor) {
     converter.meta({ cursor -> cursor.isCheckpoint(startRow, startSheet) },
@@ -87,11 +56,11 @@ fun DslXMLStreamWriter.meta(converter: Converter, startRow: Int = 0, startSheet:
 }
 
 fun DslXMLStreamWriter.meta(converter: Converter, startRow: Int = 0, startSheet: Int = 1, endCheck: CheckStatement, metaCallback: WriterWithCursor) {
-    converter.meta({ cursor -> cursor.isCheckpoint(startRow, startSheet) }, endCheck, metaCallback)
+    converter.meta({ cursor -> cursor.isCheckpoint(startRow, startSheet) }, endCheck, metaCallback, Checkpoint.Type.POST)
 }
 
 fun DslXMLStreamWriter.meta(converter: Converter, startCheck: CheckStatement, endRow: Int, endSheet: Int = 1, metaCallback: WriterWithCursor) {
-    converter.meta(startCheck, { cursor -> cursor.isCheckpoint(endRow, endSheet) }, metaCallback)
+    converter.meta(startCheck, { cursor -> cursor.isCheckpoint(endRow, endSheet) }, metaCallback, Checkpoint.Type.POST)
 }
 
 
@@ -103,9 +72,13 @@ WriterWithCursor) {
 }
 
 fun DslXMLStreamWriter.stream(converter: Converter, startRow: Int = 0, startSheet: Int = 1, endCheck: CheckStatement, streamCallback: WriterWithCursor) {
-    converter.stream({ cursor -> cursor.isCheckpoint(startRow, startSheet) }, endCheck, streamCallback)
+    converter.stream({ cursor -> cursor.isCheckpoint(startRow, startSheet) }, endCheck, streamCallback, Checkpoint.Type.POST)
 }
 
 fun DslXMLStreamWriter.stream(converter: Converter, startCheck: CheckStatement, endRow: Int, endSheet: Int = 1, streamCallback: WriterWithCursor) {
-    converter.stream(startCheck, { cursor -> cursor.isCheckpoint(endRow, endSheet) }, streamCallback)
+    converter.stream(startCheck, { cursor -> cursor.isCheckpoint(endRow, endSheet) }, streamCallback, Checkpoint.Type.POST)
+}
+
+fun DslXMLStreamWriter.stream(converter: Converter, startCheck: CheckStatement, endCheck: CheckStatement, streamCallback: WriterWithCursor) {
+    converter.stream(startCheck, endCheck, streamCallback, Checkpoint.Type.POST)
 }
