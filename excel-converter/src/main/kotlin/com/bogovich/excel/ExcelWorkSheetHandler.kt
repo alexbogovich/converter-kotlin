@@ -8,20 +8,20 @@ class ExcelWorkSheetHandler : XSSFSheetXMLHandler.SheetContentsHandler {
 
     companion object : KLogging()
 
-    lateinit var cursor: Cursor
-    lateinit var rowEndCallback: CursorOperation
-    lateinit var rowStartCallback: CursorOperation
-    lateinit var cellCallback: CursorOperation
+    val cellData = mutableListOf<CellData>()
+    lateinit var sheetData: SheetData
+    lateinit var rowEndCallback: RowDataCallback
+
+    //    lateinit var cursor: Cursor
+//    lateinit var rowStartCallback: CursorOperation
+//    lateinit var cellCallback: CursorOperation
 
     override fun endRow(rowNum: Int) {
         logger.info { "endRow rowNum = $rowNum" }
         if (this::rowEndCallback.isInitialized) {
-            rowEndCallback(cursor)
+            //rowEndCallback(RowData(sheetData.sheetNum, rowNum, cellData.toList()))
         }
-        if(cursor.mode == Cursor.ReadMode.META) {
-            cursor.saveStreamToMeta()
-        }
-        cursor.streamData.clear()
+        cellData.clear()
     }
 
     override fun headerFooter(text: String?, isHeader: Boolean, tagName: String?) {
@@ -30,31 +30,12 @@ class ExcelWorkSheetHandler : XSSFSheetXMLHandler.SheetContentsHandler {
 
     override fun startRow(rowNum: Int) {
         logger.info { "startRow rowNum = $rowNum" }
-
-        cursor.apply {
-            rowNumber = rowNum
-            if (mode == Cursor.ReadMode.STREAM && streamData.isNotEmpty()) {
-                streamData.clear()
-            }
-        }
-
-        if (this::rowStartCallback.isInitialized) {
-            rowStartCallback(cursor)
-        }
     }
 
     override fun cell(cellReference: String?, formattedValue: String?, comment: XSSFComment?) {
         logger.info { "cell cellReference = $cellReference formattedValue = $formattedValue" }
-
-        cursor.apply {
-            reference = cellReference!!
-            value = formattedValue!!
-            val refPrefix = reference.replace("[0-9]+".toRegex(), "")
-            streamData[refPrefix] = value
+        if (!cellReference.isNullOrBlank() && !formattedValue.isNullOrBlank()) {
+            cellData.add(CellData(cellReference!!, formattedValue!!))
         }
-        if (this::cellCallback.isInitialized) {
-            cellCallback(cursor)
-        }
-
     }
 }

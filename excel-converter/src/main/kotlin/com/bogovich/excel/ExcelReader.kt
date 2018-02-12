@@ -25,18 +25,17 @@ class ExcelReader(val xlsxPackage: OPCPackage, val sheetContentsHandler: ExcelWo
     (file), sheetContentsHandler, cursor)
 
     fun read(skipSheets: List<Int> = emptyList()) {
-        sheetContentsHandler.cursor = cursor
+
         val strings = ReadOnlySharedStringsTable(this.xlsxPackage)
         val xssfReader = XSSFReader(this.xlsxPackage)
         val worksheets = xssfReader.sheetsData as XSSFReader.SheetIterator
 
-        cursor.sheetNumber = 0
+        var sheetNum = 0
         worksheets.forEach { inputStream ->
             logger.info { "start new sheet '${worksheets.sheetName}'" }
-            cursor.sheetNumber++
-            cursor.sheetName = worksheets.sheetName
             if(cursor.sheetNumber !in skipSheets) {
                 inputStream.use {
+                    sheetContentsHandler.sheetData = SheetData(++sheetNum)
                     readSheet(xssfReader.stylesTable, strings, inputStream)
                 }
             }
