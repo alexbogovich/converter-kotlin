@@ -1,6 +1,7 @@
 package com.bogovich.excel
 
 import com.bogovich.utils.money
+import com.bogovich.utils.toLocalDate
 import com.bogovich.xml.writer.dsl.DslXMLStreamWriter
 import com.monitorjbl.xlsx.StreamingReader
 import kotlinx.coroutines.experimental.cancelAndJoin
@@ -67,7 +68,7 @@ fun main(args: Array<String>) = runBlocking {
     writer.document {
         "ЭДПФР" tag {
             "Реквизиты" tag {
-                "Дата" tag converter.cell("B3")
+                "Дата" tag converter.cell("B3").toLocalDate()
                 "Номер" tag converter.cell("D3")
             }
             "НПФ" tag {
