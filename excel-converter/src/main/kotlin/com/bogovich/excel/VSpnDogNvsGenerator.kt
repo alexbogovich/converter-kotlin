@@ -8,9 +8,15 @@ import kotlinx.coroutines.experimental.channels.Channel
 import kotlinx.coroutines.experimental.launch
 import kotlinx.coroutines.experimental.runBlocking
 import org.apache.poi.ss.usermodel.Cell
+import java.math.BigDecimal
 import java.nio.file.Files
 import java.nio.file.Paths
+import java.util.*
 import javax.xml.stream.XMLOutputFactory
+
+
+data class Sum(var sum: BigDecimal = BigDecimal.ZERO, var id: BigDecimal = BigDecimal.ZERO)
+
 
 fun main(args: Array<String>) = runBlocking {
     val channel = Channel<RowData>()
@@ -43,6 +49,19 @@ fun main(args: Array<String>) = runBlocking {
     val out = System.out
     val writer = DslXMLStreamWriter(XMLOutputFactory.newFactory().createXMLStreamWriter(out, "UTF-8"))
 
+    val total = object {
+        var zlCount: Long = 0
+        val transferSums = object {
+            val sv = Sum()
+            val dsv = Sum()
+            val sofn = Sum()
+            val msk = Sum()
+            var total = BigDecimal.ZERO
+        }
+        var garanty = BigDecimal.ZERO
+        var compensation = BigDecimal.ZERO
+        var totalTransferid = BigDecimal.ZERO
+    }
 
     writer.document {
         "ЭДПФР" tag {
@@ -55,11 +74,11 @@ fun main(args: Array<String>) = runBlocking {
                 "ИНН" tag converter.cell("D9")
             }
             "СписокСведений" tag {
-                var count: Long = 0
                 converter.stream({ c -> c.rowNum >= 16 && c.sheetNum == 1 },
                         { c -> c.getRow().data["A"]?.data.isNullOrEmpty() }) { row ->
+                    var rowTotalSpn = BigDecimal.ZERO
                     "Запись" tag {
-                        "НомерПП" tag ++count
+                        "НомерПП" tag ++total.zlCount
                         "ЗЛ" tag {
                             "ФИО" tag {
                                 "Фамилия" tag row.cell("B")
@@ -77,32 +96,93 @@ fun main(args: Array<String>) = runBlocking {
                         }
                         "СуммыПереданные" tag {
                             "СВ" tag {
-                                "Сумма" tag row.cell("J").money()
-                                "ИД" tag row.cell("K").money()
+                                "Сумма" tag row.cell("J").money().also {
+                                    total.transferSums.sv.sum += it
+                                    rowTotalSpn += it
+                                }
+                                "ИД" tag row.cell("K").money().also {
+                                    total.transferSums.sv.id += it
+                                    rowTotalSpn += it
+                                }
                             }
                             "ДСВ" tag {
-                                "Сумма" tag row.cell("L").money()
-                                "ИД" tag row.cell("M").money()
+                                "Сумма" tag row.cell("L").money().also {
+                                    total.transferSums.dsv.sum += it
+                                    rowTotalSpn += it
+                                }
+                                "ИД" tag row.cell("M").money().also {
+                                    total.transferSums.dsv.id += it
+                                    rowTotalSpn += it
+                                }
                             }
                             "СОФН" tag {
-                                "Сумма" tag row.cell("N").money()
-                                "ИД" tag row.cell("O").money()
+                                "Сумма" tag row.cell("N").money().also {
+                                    total.transferSums.sofn.sum += it
+                                    rowTotalSpn += it
+                                }
+                                "ИД" tag row.cell("O").money().also {
+                                    total.transferSums.sofn.id += it
+                                    rowTotalSpn += it
+                                }
                             }
                             "МСК" tag {
-                                "Сумма" tag row.cell("P").money()
-                                "ИД" tag row.cell("Q").money()
+                                "Сумма" tag row.cell("P").money().also {
+                                    total.transferSums.msk.sum += it
+                                    rowTotalSpn += it
+                                }
+                                "ИД" tag row.cell("Q").money().also {
+                                    total.transferSums.msk.id += it
+                                    rowTotalSpn += it
+                                }
                             }
-                            "ВсегоСПН" tag row.cell("R").money()
                         }
-                        "ГарантийноеВосполнение" tag row.cell("S").money()
-                        "Компенсация" tag row.cell("T").money()
-                        "ВсегоПередано" tag row.cell("U").money()
+                        "ВсегоСПН" tag rowTotalSpn.also { total.transferSums.total += it }
+                    }
+                    "ГарантийноеВосполнение" tag row.cell("S").money().also {
+                        total.garanty += it
+                        rowTotalSpn += it
+                    }
+                    "Компенсация" tag row.cell("T").money().also {
+                        total.compensation += it
+                        rowTotalSpn += it
+                    }
+                    "ВсегоПередано" tag rowTotalSpn.also { total.totalTransferid += it }
+                }
+            }
+            "Итого" tag {
+                "КоличествоЗЛ" tag total.zlCount
+                "СуммыПереданные" tag {
+                    "СуммыПереданные" tag {
+                        "СВ" tag {
+                            "Сумма" tag total.transferSums.sv.sum
+                            "ИД" tag total.transferSums.sv.id
+                        }
+                        "ДСВ" tag {
+                            "Сумма" tag total.transferSums.dsv.sum
+                            "ИД" tag total.transferSums.dsv.id
+                        }
+                        "СОФН" tag {
+                            "Сумма" tag total.transferSums.sofn.sum
+                            "ИД" tag total.transferSums.sofn.id
+                        }
+                        "МСК" tag {
+                            "Сумма" tag total.transferSums.msk.sum
+                            "ИД" tag total.transferSums.msk.id
+                        }
+                        "ВсегоСПН" tag total.transferSums.total
                     }
                 }
+                "ГарантийноеВосполнение" tag total.garanty
+                "Компенсация" tag total.compensation
+                "ВсегоПередано" tag total.totalTransferid
+            }
+            "СлужебнаяИнформация" tag {
+                "GUID" tag UUID.randomUUID()
+                "ДатаВремя" tag Date()
             }
         }
     }
 
     job.cancelAndJoin()
-    println("Done!")
+//    println("Done!")
 }
