@@ -11,6 +11,7 @@ import org.apache.poi.ss.usermodel.Cell
 import java.math.BigDecimal
 import java.nio.file.Files
 import java.nio.file.Paths
+import java.time.LocalDateTime
 import java.util.*
 import javax.xml.stream.XMLOutputFactory
 
@@ -178,7 +179,8 @@ fun main(args: Array<String>) = runBlocking {
             }
             "СлужебнаяИнформация" tag {
                 "GUID" tag UUID.randomUUID()
-                "ДатаВремя" tag Date()
+                "ДатаВремя" tag LocalDateTime.now()
+                "ЗаГод" tag LocalDateTime.now().year
             }
         }
     }
