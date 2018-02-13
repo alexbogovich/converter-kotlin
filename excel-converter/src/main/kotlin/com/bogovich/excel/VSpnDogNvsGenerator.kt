@@ -8,7 +8,9 @@ import kotlinx.coroutines.experimental.cancelAndJoin
 import kotlinx.coroutines.experimental.channels.Channel
 import kotlinx.coroutines.experimental.launch
 import kotlinx.coroutines.experimental.runBlocking
+import mu.KLogging
 import org.apache.poi.ss.usermodel.Cell
+import java.io.InputStream
 import java.math.BigDecimal
 import java.nio.file.Files
 import java.nio.file.Paths
@@ -19,35 +21,51 @@ import javax.xml.stream.XMLOutputFactory
 
 data class Sum(var sum: BigDecimal = BigDecimal.ZERO, var id: BigDecimal = BigDecimal.ZERO)
 
+class Reader(private val channel: Channel<RowData>) {
 
-fun main(args: Array<String>) = runBlocking {
-    val channel = Channel<RowData>()
-    val job = launch(coroutineContext) {
-        val inputStream = Files.newInputStream(Paths.get("C:/Users/aleksandr.bogovich/Desktop/my staff/practice/converter-kotlin/excel-converter/src/main/resources/РНПФ-01.xlsx"))
+    companion object : KLogging()
+
+    suspend fun readMainDoc(path: String) {
+        val inputStream = Files.newInputStream(Paths.get(path))
         inputStream.use { stream ->
-            val workbook = StreamingReader.builder()
-                    .rowCacheSize(100)    // number of rows to keep in memory (defaults to 10)
-                    .bufferSize(4096)     // buffer size to use when reading InputStream to file (defaults to 1024)
-                    .open(stream)            // InputStream or File for XLSX file (required)
-            for ((sheetNum, sheet) in workbook.withIndex()) {
+            readMainDoc(stream)
+        }
+    }
+
+    suspend fun readMainDoc(inputStream: InputStream) {
+        val workbook = StreamingReader.builder()
+                .rowCacheSize(100)    // number of rows to keep in memory (defaults to 10)
+                .bufferSize(4096)     // buffer size to use when reading InputStream to file (defaults to 1024)
+                .open(inputStream)            // InputStream or File for XLSX file (required)
+        for ((sheetNum, sheet) in workbook.withIndex()) {
 //                println(sheet.sheetName)
-                for (row in sheet) {
+            for (row in sheet) {
 //                    println("read row ${row.rowNum}")
-                    row.asSequence()
-                            .filter { cell: Cell -> !cell.stringCellValue.isNullOrEmpty() }
-                            .map { cell: Cell -> CellData.of(cell) }
-                            .associateBy { cellData: CellData -> cellData.ref }
-                            .also { cells ->
-                                //println("prepare to send row ${row.rowNum}")
-                                channel.send(RowData(sheetNum + 1, row.rowNum, cells))
-                                //println("sent to send row ${row.rowNum}")
-                            }
-                }
+                row.asSequence()
+                        .filter { cell: Cell -> !cell.stringCellValue.isNullOrEmpty() }
+                        .map { cell: Cell -> CellData.of(cell) }
+                        .associateBy { cellData: CellData -> cellData.ref }
+                        .also { cells ->
+                            //println("prepare to send row ${row.rowNum}")
+                            logger.info { "Send $cells" }
+                            channel.send(RowData(sheetNum + 1, row.rowNum, cells))
+                            //println("sent to send row ${row.rowNum}")
+                        }
             }
         }
     }
 
+}
+
+fun main(args: Array<String>) = runBlocking {
+    val channel = Channel<RowData>()
+    val reader = Reader(channel)
     val converter = Converter(channel)
+
+    val job = launch(coroutineContext) {
+        reader.readMainDoc("/home/alex/IdeaProjects/converter-kotlin/excel-converter/src/main/resources/РНПФ-01.xlsx")
+    }
+
     val out = System.out
     val writer = CoroutineXMLStreamWriter(XMLOutputFactory.newFactory().createXMLStreamWriter(out, "UTF-8"))
 
@@ -76,8 +94,8 @@ fun main(args: Array<String>) = runBlocking {
                 "ИНН" tag converter.cell("D9")
             }
             "СписокСведений" tag {
-                converter.stream({ c -> c.rowNum >= 16 && c.sheetNum == 1 },
-                        { c -> c.getRow().data["A"]?.data.isNullOrEmpty() }) { row ->
+                converter.stream({ row -> row.rowNum >= 16 && row.sheetNum == 1 },
+                        { row -> row.data["A"]?.data.isNullOrEmpty() }) { row ->
                     var rowTotalSpn = BigDecimal.ZERO
                     "Запись" tag {
                         "НомерПП" tag ++total.zlCount
@@ -185,7 +203,6 @@ fun main(args: Array<String>) = runBlocking {
             }
         }
     }
-
     job.cancelAndJoin()
 //    println("Done!")
 }

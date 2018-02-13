@@ -20,23 +20,41 @@ class Converter(val channel: Channel<RowData>) {
 //        logger.info { "get cellRowNum $cellRowNum" }
         while (/*metaData.containsKey("$ref#$sheet") || */rowNum < cellRowNum) {
 //            logger.info { "request read row ${rowNum + 1}" }
-            readToMeta()
+            saveToMeta(readRowData())
         }
         return metaData["$ref#$sheet"].toString()
     }
 
-    suspend fun readToMeta() {
-        readRowData()
-        rowData.data.forEach { ref, value -> metaData["$ref${rowData.rowNum + 1}#${rowData.sheetNum}"] = value.data }
+    fun saveToMeta(row: RowData) {
+        row.data.forEach { ref, value -> metaData["$ref${rowData.rowNum + 1}#${rowData.sheetNum}"] = value.data }
 //        logger.info { "meta = $metaData" }
     }
 
-    suspend fun readRowData() {
+
+
+
+    suspend fun readRowData(): RowData {
         withTimeout(5000) {
             rowData = channel.receive()
 //        logger.info { "reseave row $rowData" }
             rowNum = rowData.rowNum
         }
+        return rowData
+    }
+
+    suspend fun readRestToMeta() {
+        logger.info { "current meta = $metaData" }
+        logger.info { "try readRestToMeta" }
+
+//        for (data in channel) {
+//            logger.info { "receive rest data = $data" }
+//            data.data.forEach { ref, value -> metaData["$ref${rowData.rowNum + 1}#${rowData.sheetNum}"] = value.data }
+//        }
+
+        readRowData()
+
+//        channel.close()
+        logger.info { "end readRestToMeta" }
     }
 
     suspend fun getRow(): RowData {
@@ -46,19 +64,21 @@ class Converter(val channel: Channel<RowData>) {
         return rowData
     }
 
-    suspend fun stream(startCondition: suspend (converter:Converter) -> Boolean,
-               endCondition: suspend (converter:Converter) -> Boolean,
+    suspend fun stream(startCondition: (rowData:RowData) -> Boolean,
+               endCondition: (rowData:RowData) -> Boolean,
                proccess: suspend (row: RowData) -> Unit) {
         if (state == ReadState.META) {
-            while (!startCondition(this)) {
-                readToMeta()
+            while (!startCondition(readRowData())) {
+                saveToMeta(rowData)
             }
             state = ReadState.STREAM
-            if (startCondition(this) && !endCondition(this)) {
+            if (startCondition(rowData) && !endCondition(rowData)) {
                 do {
                     proccess(rowData)
                     readRowData()
-                } while (startCondition(this) && !endCondition(this))
+                } while (startCondition(rowData) && !endCondition(rowData))
+                saveToMeta(rowData)
+                readRestToMeta()
             }
             state = ReadState.META
         }
