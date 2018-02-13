@@ -57,8 +57,7 @@ fun main(args: Array<String>) = runBlocking {
             "СписокСведений" tag {
                 var count: Long = 0
                 converter.stream({ c -> c.rowNum >= 16 && c.sheetNum == 1 },
-                        { c -> c.getRow().data["A"]?.data.isNullOrEmpty()
-                        }) { row ->
+                        { c -> c.getRow().data["A"]?.data.isNullOrEmpty() }) { row ->
                     "Запись" tag {
                         "НомерПП" tag ++count
                         "ЗЛ" tag {
