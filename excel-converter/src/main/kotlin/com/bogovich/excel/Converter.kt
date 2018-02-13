@@ -2,6 +2,7 @@ package com.bogovich.excel
 
 import com.bogovich.utils.CellUtils
 import kotlinx.coroutines.experimental.channels.Channel
+import kotlinx.coroutines.experimental.withTimeout
 import mu.KLogging
 
 class Converter(val channel: Channel<RowData>) {
@@ -31,9 +32,11 @@ class Converter(val channel: Channel<RowData>) {
     }
 
     suspend fun readRowData() {
-        rowData = channel.receive()
+        withTimeout(5000) {
+            rowData = channel.receive()
 //        logger.info { "reseave row $rowData" }
-        rowNum = rowData.rowNum
+            rowNum = rowData.rowNum
+        }
     }
 
     suspend fun getRow(): RowData {
