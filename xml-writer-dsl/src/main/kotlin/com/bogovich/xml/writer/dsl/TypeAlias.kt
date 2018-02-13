@@ -1,3 +1,4 @@
 package com.bogovich.xml.writer.dsl
 
-typealias xmlStreamLambda =  suspend DslXMLStreamWriter.() -> Unit
+typealias xmlStreamLambda =  DslXMLStreamWriter.() -> Unit
+typealias xmlStreamCoroutine =  suspend CoroutineXMLStreamWriter.() -> Unit

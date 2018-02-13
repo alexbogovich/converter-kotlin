@@ -2,7 +2,7 @@ package com.bogovich.excel
 
 import com.bogovich.utils.money
 import com.bogovich.utils.toLocalDate
-import com.bogovich.xml.writer.dsl.DslXMLStreamWriter
+import com.bogovich.xml.writer.dsl.CoroutineXMLStreamWriter
 import com.monitorjbl.xlsx.StreamingReader
 import kotlinx.coroutines.experimental.cancelAndJoin
 import kotlinx.coroutines.experimental.channels.Channel
@@ -49,7 +49,7 @@ fun main(args: Array<String>) = runBlocking {
 
     val converter = Converter(channel)
     val out = System.out
-    val writer = DslXMLStreamWriter(XMLOutputFactory.newFactory().createXMLStreamWriter(out, "UTF-8"))
+    val writer = CoroutineXMLStreamWriter(XMLOutputFactory.newFactory().createXMLStreamWriter(out, "UTF-8"))
 
     val total = object {
         var zlCount: Long = 0

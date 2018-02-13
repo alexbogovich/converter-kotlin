@@ -6,10 +6,10 @@ import javax.xml.stream.XMLStreamWriter
 
 
 
-class DslXMLStreamWriter(writer: XMLStreamWriter?) : IndentingXMLStreamWriter(writer) {
+class CoroutineXMLStreamWriter(writer: XMLStreamWriter?) : IndentingXMLStreamWriter(writer) {
     companion object : KLogging()
 
-    fun document(init: xmlStreamLambda): DslXMLStreamWriter {
+    suspend fun document(init: xmlStreamCoroutine): CoroutineXMLStreamWriter {
         this.writeStartDocument()
         this.init()
         this.writeEndDocument()
@@ -17,37 +17,37 @@ class DslXMLStreamWriter(writer: XMLStreamWriter?) : IndentingXMLStreamWriter(wr
         return this
     }
 
-    fun element(name: String, init: xmlStreamLambda): DslXMLStreamWriter {
+    suspend fun element(name: String, init: xmlStreamCoroutine): CoroutineXMLStreamWriter {
         this.writeStartElement(name)
         this.init()
         this.writeEndElement()
         return this
     }
 
-    fun element(namespace: String, name: String, init: xmlStreamLambda): DslXMLStreamWriter {
+    suspend fun element(namespace: String, name: String, init: xmlStreamCoroutine): CoroutineXMLStreamWriter {
         this.writeStartElement(namespace, name)
         this.init()
         this.writeEndElement()
         return this
     }
 
-    fun defaultNamespace(namespace: String): DslXMLStreamWriter {
+    suspend fun defaultNamespace(namespace: String): CoroutineXMLStreamWriter {
         this.writeDefaultNamespace(namespace)
         return this
     }
 
-    fun namespace(prefix: String, namespace: String): DslXMLStreamWriter {
+    suspend fun namespace(prefix: String, namespace: String): CoroutineXMLStreamWriter {
         this.writeNamespace(prefix, namespace)
         return this
     }
 
-    fun element(name: String, content: Any) {
+    suspend fun element(name: String, content: Any) {
         element(name) {
             writeCharacters(content.toString())
         }
     }
 
-    fun element(namespace: String, name: String, content: Any) {
+    suspend fun element(namespace: String, name: String, content: Any) {
         element(namespace, name) {
             writeCharacters(content.toString())
         }
@@ -55,23 +55,23 @@ class DslXMLStreamWriter(writer: XMLStreamWriter?) : IndentingXMLStreamWriter(wr
 
     fun attribute(name: String, value: Any) = writeAttribute(name, value.toString())
 
-    infix fun String.tag(value: Any) {
+    suspend infix fun String.tag(value: Any) {
         element(this, value)
     }
 
-    infix fun String.tag(lambda: xmlStreamLambda) {
+    suspend infix fun String.tag(lambda: xmlStreamCoroutine) {
         element(this, lambda)
     }
 
-    infix fun Pair<String, String>.tag(value: Any) {
+    suspend infix fun Pair<String, String>.tag(value: Any) {
         element(this.first, this.second, value)
     }
 
-    infix fun Pair<String, String>.tag(lambda: xmlStreamLambda) {
+    suspend infix fun Pair<String, String>.tag(lambda: xmlStreamCoroutine) {
         element(this.first, this.second, lambda)
     }
 
-    infix fun String.attr(value: Any) {
+    suspend infix fun String.attr(value: Any) {
         attribute(this, value)
     }
 }

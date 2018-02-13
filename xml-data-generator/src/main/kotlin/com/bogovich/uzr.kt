@@ -2,7 +2,6 @@ package com.bogovich
 
 import com.bogovich.utils.InsuredPersonUtils
 import com.bogovich.xml.writer.dsl.DslXMLStreamWriter
-import kotlinx.coroutines.experimental.runBlocking
 import java.time.LocalDate
 import java.util.*
 import javax.xml.stream.XMLOutputFactory
@@ -17,7 +16,7 @@ const val AF = "http://пф.рф/АФ"
 val guid = UUID.randomUUID().toString()
 val localDate = LocalDate.now().toString()
 
-fun main(args: Array<String>) = runBlocking<Unit>  {
+fun main(args: Array<String>) {
     val out = System.out
     val writer = DslXMLStreamWriter(XMLOutputFactory.newFactory().createXMLStreamWriter(out, "UTF-8"))
 //    val file = File("h:\\ПФР_777000_УЗР_${localDate}_${guid}.xml.gz")
@@ -28,7 +27,7 @@ fun main(args: Array<String>) = runBlocking<Unit>  {
 //    }
 }
 
-private suspend fun serialize04(writer: DslXMLStreamWriter) {
+private fun serialize04(writer: DslXMLStreamWriter) {
     writer.document {
         element("ЭДПФР") {
             defaultNamespace(UZR)
