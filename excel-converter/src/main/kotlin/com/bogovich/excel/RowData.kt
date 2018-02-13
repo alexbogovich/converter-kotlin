@@ -10,5 +10,9 @@ data class CellData (val ref: String, val data: String) {
         }
     }
 }
-data class RowData (val sheetNum: Int, val rowNum: Int, val data:Map<String, CellData>)
+data class RowData (val sheetNum: Int, val rowNum: Int, val data:Map<String, CellData>) {
+    fun cell(shortRef: String): String {
+        return data[shortRef]?.data.orEmpty()
+    }
+}
 data class SheetData (val sheetNum: Int)

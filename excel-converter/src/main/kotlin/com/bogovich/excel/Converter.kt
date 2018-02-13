@@ -11,6 +11,7 @@ class Converter(val channel: Channel<RowData>) {
     private lateinit var rowData: RowData
     var sheetNum: Int = 1
     var rowNum: Int = 0
+    var state: ReadState = ReadState.META
 
     suspend fun cell(ref: String, sheet: Int = 1): String {
 //        logger.info { "request cell $ref $sheet" }
@@ -40,5 +41,28 @@ class Converter(val channel: Channel<RowData>) {
             readRowData()
         }
         return rowData
+    }
+
+    suspend fun stream(startCondition: suspend (converter:Converter) -> Boolean,
+               endCondition: suspend (converter:Converter) -> Boolean,
+               proccess: suspend (row: RowData) -> Unit) {
+        if (state == ReadState.META) {
+            while (!startCondition(this)) {
+                readToMeta()
+            }
+            state = ReadState.STREAM
+            if (startCondition(this) && !endCondition(this)) {
+                do {
+                    proccess(rowData)
+                    readRowData()
+                } while (startCondition(this) && !endCondition(this))
+            }
+            state = ReadState.META
+        }
+    }
+
+    enum class ReadState {
+        META,
+        STREAM
     }
 }

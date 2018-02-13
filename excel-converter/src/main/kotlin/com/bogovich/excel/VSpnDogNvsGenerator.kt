@@ -55,6 +55,53 @@ fun main(args: Array<String>) = runBlocking {
                 "НаименованиеФормализованное" tag converter.cell("D11")
                 "ИНН" tag converter.cell("D9")
             }
+            "СписокСведений" tag {
+                var count: Long = 0
+                converter.stream({ c -> c.rowNum >= 16 && c.sheetNum == 1 },
+                        { c -> c.getRow().data["A"]?.data.isNullOrEmpty()
+                        }) { row ->
+                    "Запись" tag {
+                        "НомерПП" tag ++count
+                        "ЗЛ" tag {
+                            "ФИО" tag {
+                                "Фамилия" tag row.cell("B")
+                                "Имя" tag row.cell("C")
+                                "Отчество" tag row.cell("D")
+                            }
+                            "Пол" tag row.cell("G")
+                            "ДатаРождения" tag row.cell("E")
+                            "МестоРождения" tag {
+                                "ТипМестаРождения" tag "СТАНДАРТНОЕ"
+                                "ГородРождения" tag row.cell("F")
+                                "СтранаРождения" tag "РФ"
+                            }
+                            "СтраховойНомер" tag "${row.cell("H")} ${row.cell("I")}"
+                        }
+                        "СуммыПереданные" tag {
+                            "СВ" tag {
+                                "Сумма" tag row.cell("J")
+                                "ИД" tag row.cell("K")
+                            }
+                            "ДСВ" tag {
+                                "Сумма" tag row.cell("L")
+                                "ИД" tag row.cell("M")
+                            }
+                            "СОФН" tag {
+                                "Сумма" tag row.cell("N")
+                                "ИД" tag row.cell("O")
+                            }
+                            "МСК" tag {
+                                "Сумма" tag row.cell("P")
+                                "ИД" tag row.cell("Q")
+                            }
+                            "ВсегоСПН" tag row.cell("R")
+                        }
+                        "ГарантийноеВосполнение" tag row.cell("S")
+                        "Компенсация" tag row.cell("T")
+                        "ВсегоПередано" tag row.cell("U")
+                    }
+                }
+            }
         }
     }
 
