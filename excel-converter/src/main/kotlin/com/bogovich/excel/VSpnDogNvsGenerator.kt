@@ -1,5 +1,6 @@
 package com.bogovich.excel
 
+import com.bogovich.utils.money
 import com.bogovich.xml.writer.dsl.DslXMLStreamWriter
 import com.monitorjbl.xlsx.StreamingReader
 import kotlinx.coroutines.experimental.cancelAndJoin
@@ -77,26 +78,26 @@ fun main(args: Array<String>) = runBlocking {
                         }
                         "СуммыПереданные" tag {
                             "СВ" tag {
-                                "Сумма" tag row.cell("J")
-                                "ИД" tag row.cell("K")
+                                "Сумма" tag row.cell("J").money()
+                                "ИД" tag row.cell("K").money()
                             }
                             "ДСВ" tag {
-                                "Сумма" tag row.cell("L")
-                                "ИД" tag row.cell("M")
+                                "Сумма" tag row.cell("L").money()
+                                "ИД" tag row.cell("M").money()
                             }
                             "СОФН" tag {
-                                "Сумма" tag row.cell("N")
-                                "ИД" tag row.cell("O")
+                                "Сумма" tag row.cell("N").money()
+                                "ИД" tag row.cell("O").money()
                             }
                             "МСК" tag {
-                                "Сумма" tag row.cell("P")
-                                "ИД" tag row.cell("Q")
+                                "Сумма" tag row.cell("P").money()
+                                "ИД" tag row.cell("Q").money()
                             }
-                            "ВсегоСПН" tag row.cell("R")
+                            "ВсегоСПН" tag row.cell("R").money()
                         }
-                        "ГарантийноеВосполнение" tag row.cell("S")
-                        "Компенсация" tag row.cell("T")
-                        "ВсегоПередано" tag row.cell("U")
+                        "ГарантийноеВосполнение" tag row.cell("S").money()
+                        "Компенсация" tag row.cell("T").money()
+                        "ВсегоПередано" tag row.cell("U").money()
                     }
                 }
             }

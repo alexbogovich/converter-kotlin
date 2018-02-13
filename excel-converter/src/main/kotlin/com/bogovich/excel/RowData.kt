@@ -2,6 +2,7 @@ package com.bogovich.excel
 
 import com.bogovich.utils.CellUtils
 import org.apache.poi.ss.usermodel.Cell
+import java.math.BigDecimal
 
 data class CellData (val ref: String, val data: String) {
     companion object {
@@ -16,3 +17,6 @@ data class RowData (val sheetNum: Int, val rowNum: Int, val data:Map<String, Cel
     }
 }
 data class SheetData (val sheetNum: Int)
+
+
+
