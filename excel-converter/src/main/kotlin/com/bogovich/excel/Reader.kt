@@ -47,7 +47,10 @@ class Reader(private val mainFileChannel: Channel<RowData>, private val restFile
         mainFileChannel.close()
     }
 
-    suspend fun readRestDocs(path: String) {
+    suspend fun readRestDocs(path: String, index: Int, total: Int) {
         read(path, restFileChannel)
+        if (index == total) {
+            restFileChannel.close()
+        }
     }
 }

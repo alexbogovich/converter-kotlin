@@ -24,12 +24,10 @@ fun main(args: Array<String>) = runBlocking {
                     converter.reader.readMainDoc(s)
                 }
                 else -> {
-                    converter.reader.readRestDocs(s)
+                    converter.reader.readRestDocs(s, index + 1, args.size)
                 }
             }
         }
-        //temp solution
-        converter.restFileChannel.close()
     }
 
     val out = System.out
