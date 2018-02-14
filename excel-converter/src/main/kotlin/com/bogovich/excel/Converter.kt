@@ -18,7 +18,7 @@ class Converter(val channel: Channel<RowData>) {
 //        logger.info { "request cell $ref $sheet" }
         val cellRowNum: Int = CellUtils.getRowNum(ref)
 //        logger.info { "get cellRowNum $cellRowNum" }
-        while (/*metaData.containsKey("$ref#$sheet") || */rowNum < cellRowNum) {
+        while (!metaData.containsKey("$ref#$sheet") && rowNum < cellRowNum) {
 //            logger.info { "request read row ${rowNum + 1}" }
             saveToMeta(readRowData())
         }

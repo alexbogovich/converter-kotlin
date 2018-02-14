@@ -8,7 +8,7 @@ import java.time.format.DateTimeFormatter
 object DateUtils {
     private val logger = KotlinLogging.logger {}
 
-    private val M_DD_YY: DateTimeFormatter = DateTimeFormatter.ofPattern("M/dd/yyyy")
+    private val M_DD_YY: DateTimeFormatter = DateTimeFormatter.ofPattern("M/dd/yy")
     // TODO паттерн 1/15/2017
 
     fun parse(s: String): LocalDate {
