@@ -4,7 +4,6 @@ import com.bogovich.utils.money
 import com.bogovich.utils.toLocalDate
 import com.bogovich.xml.writer.dsl.CoroutineXMLStreamWriter
 import kotlinx.coroutines.experimental.cancelAndJoin
-import kotlinx.coroutines.experimental.channels.Channel
 import kotlinx.coroutines.experimental.launch
 import kotlinx.coroutines.experimental.runBlocking
 import java.math.BigDecimal
@@ -16,12 +15,21 @@ import javax.xml.stream.XMLOutputFactory
 data class Sum(var sum: BigDecimal = BigDecimal.ZERO, var id: BigDecimal = BigDecimal.ZERO)
 
 fun main(args: Array<String>) = runBlocking {
-    val mainFileChannel = Channel<RowData>()
-    val reader = Reader(mainFileChannel)
-    val converter = Converter(mainFileChannel)
+    val converter = Converter()
 
     val job = launch(coroutineContext) {
-        reader.readMainDoc(args[0])
+        args.forEachIndexed { index, s ->
+            when (index) {
+                0 -> {
+                    converter.reader.readMainDoc(s)
+                }
+                else -> {
+                    converter.reader.readRestDocs(s)
+                }
+            }
+        }
+        //temp solution
+        converter.restFileChannel.close()
     }
 
     val out = System.out
