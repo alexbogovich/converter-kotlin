@@ -22,7 +22,6 @@ class Converter {
         val cellRowNum: Int = CellUtils.getRowNum(ref)
 //        logger.info { "get cellRowNum $cellRowNum" }
         while (!metaData.containsKey("$ref#$sheet") && rowNum < cellRowNum) {
-//            logger.info { "request read row ${rowNum + 1}" }
             saveToMeta(readRowData())
         }
         return metaData["$ref#$sheet"].toString()
@@ -32,8 +31,6 @@ class Converter {
         row.data.forEach { ref, value -> metaData["$ref${rowData.rowNum + 1}#${rowData.sheetNum}"] = value.data }
 //        logger.info { "meta = $metaData" }
     }
-
-
 
 
     suspend fun readRowData(): RowData {
@@ -46,8 +43,8 @@ class Converter {
     }
 
     suspend fun readRestToMeta() {
-        logger.info { "current meta = $metaData" }
-        logger.info { "try readRestToMeta" }
+//        logger.info { "current meta = $metaData" }
+//        logger.info { "try readRestToMeta" }
         var receiveOrNull: RowData?
         do {
             receiveOrNull = mainFileChannel.receiveOrNull()
@@ -55,8 +52,8 @@ class Converter {
                 saveToMeta(receiveOrNull)
             }
         } while (receiveOrNull != null)
-        logger.info { "end readRestToMeta" }
-        logger.info { "final meta = $metaData" }
+//        logger.info { "end readRestToMeta" }
+//        logger.info { "final meta = $metaData" }
     }
 
     suspend fun getRow(): RowData {
@@ -66,8 +63,8 @@ class Converter {
         return rowData
     }
 
-    suspend fun stream(startCondition: (rowData:RowData) -> Boolean,
-                       endCondition: (rowData:RowData) -> Boolean,
+    suspend fun stream(startCondition: (rowData: RowData) -> Boolean,
+                       endCondition: (rowData: RowData) -> Boolean,
                        process: suspend (row: RowData) -> Unit) {
         if (state == ReadState.META) {
             while (!startCondition(readRowData())) {
@@ -86,7 +83,7 @@ class Converter {
                 var streamEndRow = Int.MAX_VALUE
 
                 for (restRowData in restFileChannel) {
-                    if (!streamData && restRowData.rowNum <= streamEndRow && startCondition(restRowData) ) {
+                    if (!streamData && restRowData.rowNum <= streamEndRow && startCondition(restRowData)) {
                         streamData = true
                     } else if (streamData && endCondition(restRowData)) {
                         streamData = false
@@ -95,6 +92,8 @@ class Converter {
 
                     if (streamData) {
                         process(restRowData)
+                    } else {
+                        logger.debug { "ignore $restRowData" }
                     }
                 }
             }

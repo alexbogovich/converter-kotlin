@@ -17,7 +17,7 @@ data class Sum(var sum: BigDecimal = BigDecimal.ZERO, var id: BigDecimal = BigDe
 fun main(args: Array<String>) = runBlocking {
     val converter = Converter()
 
-    val job = launch(coroutineContext) {
+    val job = launch {
         args.forEachIndexed { index, s ->
             when (index) {
                 0 -> {
@@ -44,7 +44,7 @@ fun main(args: Array<String>) = runBlocking {
         }
         var garanty = BigDecimal.ZERO
         var compensation = BigDecimal.ZERO
-        var totalTransferid = BigDecimal.ZERO
+        var totalTransferred = BigDecimal.ZERO
     }
 
     writer.document {
@@ -130,7 +130,7 @@ fun main(args: Array<String>) = runBlocking {
                         total.compensation += it
                         rowTotalSpn += it
                     }
-                    "ВсегоПередано" tag rowTotalSpn.also { total.totalTransferid += it }
+                    "ВсегоПередано" tag rowTotalSpn.also { total.totalTransferred += it }
                 }
             }
             "Итого" tag {
@@ -158,7 +158,7 @@ fun main(args: Array<String>) = runBlocking {
                 }
                 "ГарантийноеВосполнение" tag total.garanty
                 "Компенсация" tag total.compensation
-                "ВсегоПередано" tag total.totalTransferid
+                "ВсегоПередано" tag total.totalTransferred
             }
             "СлужебнаяИнформация" tag {
                 "GUID" tag UUID.randomUUID()
@@ -168,5 +168,4 @@ fun main(args: Array<String>) = runBlocking {
         }
     }
     job.cancelAndJoin()
-//    println("Done!")
 }
