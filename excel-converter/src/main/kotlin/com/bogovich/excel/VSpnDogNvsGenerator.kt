@@ -30,7 +30,7 @@ fun main(args: Array<String>) = runBlocking {
     }
 
     val out = System.out
-    val writer = CoroutineXMLStreamWriter(XMLOutputFactory.newFactory().createXMLStreamWriter(out, "UTF-8"))
+    converter.writer = CoroutineXMLStreamWriter(XMLOutputFactory.newFactory().createXMLStreamWriter(out, "UTF-8"))
 
     val total = object {
         var zlCount: Long = 0
@@ -46,7 +46,7 @@ fun main(args: Array<String>) = runBlocking {
         var totalTransferred = BigDecimal.ZERO
     }
 
-    writer.document {
+    converter.document {
         "ЭДПФР" tag {
             "Реквизиты" tag {
                 "Дата" tag converter.cellDate("B3")

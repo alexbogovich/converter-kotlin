@@ -1,6 +1,8 @@
 package com.bogovich.excel
 
 import com.bogovich.utils.CellUtils
+import com.bogovich.xml.writer.dsl.CoroutineXMLStreamWriter
+import com.bogovich.xml.writer.dsl.xmlStreamCoroutine
 import kotlinx.coroutines.experimental.channels.Channel
 import kotlinx.coroutines.experimental.withTimeout
 import mu.KLogging
@@ -15,6 +17,7 @@ class Converter {
     private val restFileChannel = Channel<RowData>()
     private val metaData = mutableMapOf<String, Cell>()
     private lateinit var rowData: RowData
+    lateinit var writer: CoroutineXMLStreamWriter
     var rowNum: Int = 0
     var state: ReadState = ReadState.META
     val reader = Reader(mainFileChannel, restFileChannel)
@@ -121,5 +124,9 @@ class Converter {
     fun closeChannels() {
         mainFileChannel.close()
         restFileChannel.close()
+    }
+
+    suspend fun document(init: xmlStreamCoroutine) {
+        writer.document(init)
     }
 }
