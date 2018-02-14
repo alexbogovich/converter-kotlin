@@ -63,7 +63,7 @@ fun main(args: Array<String>) = runBlocking {
     val converter = Converter(channel)
 
     val job = launch(coroutineContext) {
-        reader.readMainDoc("/home/alex/IdeaProjects/converter-kotlin/excel-converter/src/main/resources/РНПФ-01.xlsx")
+        reader.readMainDoc(args[0])
     }
 
     val out = System.out
