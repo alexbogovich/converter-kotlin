@@ -1,6 +1,5 @@
 package com.bogovich.excel
 
-import com.bogovich.utils.money
 import com.bogovich.xml.writer.dsl.CoroutineXMLStreamWriter
 import kotlinx.coroutines.experimental.cancelAndJoin
 import kotlinx.coroutines.experimental.launch
@@ -80,41 +79,41 @@ fun main(args: Array<String>) = runBlocking {
                         }
                         "СуммыПереданные" tag {
                             "СВ" tag {
-                                "Сумма" tag row.cell("J").money().also {
+                                "Сумма" tag row.cellMoney("J").also {
                                     total.transferSums.sv.sum += it
                                     rowTotalSpn += it
                                 }
-                                "ИД" tag row.cell("K").money().also {
+                                "ИД" tag row.cellMoney("K").also {
                                     total.transferSums.sv.id += it
                                     rowTotalSpn += it
                                 }
                             }
                             "ДСВ" tag {
-                                "Сумма" tag row.cell("L").money().also {
+                                "Сумма" tag row.cellMoney("L").also {
                                     total.transferSums.dsv.sum += it
                                     rowTotalSpn += it
                                 }
-                                "ИД" tag row.cell("M").money().also {
+                                "ИД" tag row.cellMoney("M").also {
                                     total.transferSums.dsv.id += it
                                     rowTotalSpn += it
                                 }
                             }
                             "СОФН" tag {
-                                "Сумма" tag row.cell("N").money().also {
+                                "Сумма" tag row.cellMoney("N").also {
                                     total.transferSums.sofn.sum += it
                                     rowTotalSpn += it
                                 }
-                                "ИД" tag row.cell("O").money().also {
+                                "ИД" tag row.cellMoney("O").also {
                                     total.transferSums.sofn.id += it
                                     rowTotalSpn += it
                                 }
                             }
                             "МСК" tag {
-                                "Сумма" tag row.cell("P").money().also {
+                                "Сумма" tag row.cellMoney("P").also {
                                     total.transferSums.msk.sum += it
                                     rowTotalSpn += it
                                 }
-                                "ИД" tag row.cell("Q").money().also {
+                                "ИД" tag row.cellMoney("Q").also {
                                     total.transferSums.msk.id += it
                                     rowTotalSpn += it
                                 }
@@ -122,11 +121,11 @@ fun main(args: Array<String>) = runBlocking {
                         }
                         "ВсегоСПН" tag rowTotalSpn.also { total.transferSums.total += it }
                     }
-                    "ГарантийноеВосполнение" tag row.cell("S").money().also {
+                    "ГарантийноеВосполнение" tag row.cellMoney("S").also {
                         total.garanty += it
                         rowTotalSpn += it
                     }
-                    "Компенсация" tag row.cell("T").money().also {
+                    "Компенсация" tag row.cellMoney("T").also {
                         total.compensation += it
                         rowTotalSpn += it
                     }
