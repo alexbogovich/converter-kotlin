@@ -1,7 +1,6 @@
 package com.bogovich.excel
 
 import com.bogovich.utils.money
-import com.bogovich.utils.toLocalDate
 import com.bogovich.xml.writer.dsl.CoroutineXMLStreamWriter
 import kotlinx.coroutines.experimental.cancelAndJoin
 import kotlinx.coroutines.experimental.launch
@@ -28,6 +27,7 @@ fun main(args: Array<String>) = runBlocking {
                 }
             }
         }
+        converter.closeChannels()
     }
 
     val out = System.out
@@ -50,7 +50,7 @@ fun main(args: Array<String>) = runBlocking {
     writer.document {
         "ЭДПФР" tag {
             "Реквизиты" tag {
-                "Дата" tag converter.cell("B3").toLocalDate()
+                "Дата" tag converter.cellDate("B3")
                 "Номер" tag converter.cell("D3")
             }
             "НПФ" tag {
@@ -59,7 +59,7 @@ fun main(args: Array<String>) = runBlocking {
             }
             "СписокСведений" tag {
                 converter.stream({ row -> row.rowNum >= 16 && row.sheetNum == 1 },
-                        { row -> row.data["A"]?.data.isNullOrEmpty() }) { row ->
+                        { row -> row.data["A"]?.stringCellValue.isNullOrEmpty() }) { row ->
                     var rowTotalSpn = BigDecimal.ZERO
                     "Запись" tag {
                         "НомерПП" tag ++total.zlCount
@@ -70,7 +70,7 @@ fun main(args: Array<String>) = runBlocking {
                                 "Отчество" tag row.cell("D")
                             }
                             "Пол" tag row.cell("G")
-                            "ДатаРождения" tag row.cell("E")
+                            "ДатаРождения" tag row.cellDate("E")
                             "МестоРождения" tag {
                                 "ТипМестаРождения" tag "СТАНДАРТНОЕ"
                                 "ГородРождения" tag row.cell("F")

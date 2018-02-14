@@ -4,13 +4,16 @@ import com.bogovich.utils.CellUtils
 import kotlinx.coroutines.experimental.channels.Channel
 import kotlinx.coroutines.experimental.withTimeout
 import mu.KLogging
+import org.apache.poi.ss.usermodel.Cell
+import java.time.LocalDate
+import java.time.ZoneId
 
 class Converter {
     companion object : KLogging()
 
     private val mainFileChannel = Channel<RowData>()
     private val restFileChannel = Channel<RowData>()
-    private val metaData = mutableMapOf<String, String>()
+    private val metaData = mutableMapOf<String, Cell>()
     private lateinit var rowData: RowData
     var rowNum: Int = 0
     var state: ReadState = ReadState.META
@@ -23,11 +26,21 @@ class Converter {
         while (!metaData.containsKey("$ref#$sheet") && rowNum < cellRowNum) {
             saveToMeta(readRowData())
         }
-        return metaData["$ref#$sheet"].toString()
+        return metaData["$ref#$sheet"]!!.stringCellValue
+    }
+
+    suspend fun cellDate(ref: String, sheet: Int = 1): LocalDate {
+//        logger.info { "request cell $ref $sheet" }
+        val cellRowNum: Int = CellUtils.getRowNum(ref)
+//        logger.info { "get cellRowNum $cellRowNum" }
+        while (!metaData.containsKey("$ref#$sheet") && rowNum < cellRowNum) {
+            saveToMeta(readRowData())
+        }
+        return metaData["$ref#$sheet"]!!.dateCellValue.toInstant().atZone(ZoneId.systemDefault()).toLocalDate()
     }
 
     fun saveToMeta(row: RowData) {
-        row.data.forEach { ref, value -> metaData["$ref${rowData.rowNum + 1}#${rowData.sheetNum}"] = value.data }
+        row.data.forEach { ref, value -> metaData["$ref${rowData.rowNum + 1}#${rowData.sheetNum}"] = value }
 //        logger.info { "meta = $metaData" }
     }
 
@@ -103,5 +116,10 @@ class Converter {
     enum class ReadState {
         META,
         STREAM
+    }
+
+    fun closeChannels() {
+        mainFileChannel.close()
+        restFileChannel.close()
     }
 }

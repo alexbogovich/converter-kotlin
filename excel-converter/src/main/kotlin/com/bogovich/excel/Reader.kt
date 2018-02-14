@@ -1,5 +1,6 @@
 package com.bogovich.excel
 
+import com.bogovich.utils.CellUtils
 import com.monitorjbl.xlsx.StreamingReader
 import kotlinx.coroutines.experimental.channels.Channel
 import mu.KLogging
@@ -8,7 +9,7 @@ import java.io.InputStream
 import java.nio.file.Files
 import java.nio.file.Paths
 
-class Reader(private val mainFileChannel: Channel<RowData>, private val restFileChannel: Channel<RowData>) {
+class Reader(private val mainFileChannel: Channel<RowData>, val restFileChannel: Channel<RowData>) {
 
     companion object : KLogging()
 
@@ -30,8 +31,7 @@ class Reader(private val mainFileChannel: Channel<RowData>, private val restFile
 //                    println("read row ${row.rowNum}")
                 row.asSequence()
                         .filter { cell: Cell -> !cell.stringCellValue.isNullOrEmpty() }
-                        .map { cell: Cell -> CellData.of(cell) }
-                        .associateBy { cellData: CellData -> cellData.ref }
+                        .associateBy { cell: Cell -> CellUtils.getCellRef(cell.columnIndex) }
                         .also { cells ->
                             logger.info { "prepare to send row ${row.rowNum}" }
                             logger.info { "Send $cells" }
