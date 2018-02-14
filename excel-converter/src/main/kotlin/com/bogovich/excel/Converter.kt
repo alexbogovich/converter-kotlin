@@ -5,7 +5,7 @@ import kotlinx.coroutines.experimental.channels.Channel
 import kotlinx.coroutines.experimental.withTimeout
 import mu.KLogging
 
-class Converter(val channel: Channel<RowData>) {
+class Converter(private val mainFileChannel: Channel<RowData>) {
     companion object : KLogging()
 
     val metaData = mutableMapOf<String, String>()
@@ -35,7 +35,7 @@ class Converter(val channel: Channel<RowData>) {
 
     suspend fun readRowData(): RowData {
         withTimeout(5000) {
-            rowData = channel.receive()
+            rowData = mainFileChannel.receive()
 //        logger.info { "receive row $rowData" }
             rowNum = rowData.rowNum
         }
@@ -47,7 +47,7 @@ class Converter(val channel: Channel<RowData>) {
         logger.info { "try readRestToMeta" }
         var receiveOrNull: RowData?
         do {
-            receiveOrNull = channel.receiveOrNull()
+            receiveOrNull = mainFileChannel.receiveOrNull()
             if (receiveOrNull != null) {
                 saveToMeta(receiveOrNull)
             }

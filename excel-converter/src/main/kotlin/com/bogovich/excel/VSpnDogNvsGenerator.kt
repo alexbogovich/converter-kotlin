@@ -3,17 +3,11 @@ package com.bogovich.excel
 import com.bogovich.utils.money
 import com.bogovich.utils.toLocalDate
 import com.bogovich.xml.writer.dsl.CoroutineXMLStreamWriter
-import com.monitorjbl.xlsx.StreamingReader
 import kotlinx.coroutines.experimental.cancelAndJoin
 import kotlinx.coroutines.experimental.channels.Channel
 import kotlinx.coroutines.experimental.launch
 import kotlinx.coroutines.experimental.runBlocking
-import mu.KLogging
-import org.apache.poi.ss.usermodel.Cell
-import java.io.InputStream
 import java.math.BigDecimal
-import java.nio.file.Files
-import java.nio.file.Paths
 import java.time.LocalDateTime
 import java.util.*
 import javax.xml.stream.XMLOutputFactory
@@ -21,47 +15,10 @@ import javax.xml.stream.XMLOutputFactory
 
 data class Sum(var sum: BigDecimal = BigDecimal.ZERO, var id: BigDecimal = BigDecimal.ZERO)
 
-class Reader(private val channel: Channel<RowData>) {
-
-    companion object : KLogging()
-
-    suspend fun readMainDoc(path: String) {
-        val inputStream = Files.newInputStream(Paths.get(path))
-        inputStream.use { stream ->
-            readMainDoc(stream)
-        }
-    }
-
-    suspend fun readMainDoc(inputStream: InputStream) {
-        val workbook = StreamingReader.builder()
-                .rowCacheSize(100)    // number of rows to keep in memory (defaults to 10)
-                .bufferSize(4096)     // buffer size to use when reading InputStream to file (defaults to 1024)
-                .open(inputStream)            // InputStream or File for XLSX file (required)
-        for ((sheetNum, sheet) in workbook.withIndex()) {
-//                println(sheet.sheetName)
-            for (row in sheet) {
-//                    println("read row ${row.rowNum}")
-                row.asSequence()
-                        .filter { cell: Cell -> !cell.stringCellValue.isNullOrEmpty() }
-                        .map { cell: Cell -> CellData.of(cell) }
-                        .associateBy { cellData: CellData -> cellData.ref }
-                        .also { cells ->
-                            logger.info { "prepare to send row ${row.rowNum}" }
-                            logger.info { "Send $cells" }
-                            channel.send(RowData(sheetNum + 1, row.rowNum, cells))
-                            logger.info { "Sent ${row.rowNum}" }
-                        }
-            }
-        }
-        channel.close()
-    }
-
-}
-
 fun main(args: Array<String>) = runBlocking {
-    val channel = Channel<RowData>()
-    val reader = Reader(channel)
-    val converter = Converter(channel)
+    val mainFileChannel = Channel<RowData>()
+    val reader = Reader(mainFileChannel)
+    val converter = Converter(mainFileChannel)
 
     val job = launch(coroutineContext) {
         reader.readMainDoc(args[0])
