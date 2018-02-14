@@ -36,7 +36,7 @@ class Converter(val channel: Channel<RowData>) {
     suspend fun readRowData(): RowData {
         withTimeout(5000) {
             rowData = channel.receive()
-//        logger.info { "reseave row $rowData" }
+//        logger.info { "receive row $rowData" }
             rowNum = rowData.rowNum
         }
         return rowData
@@ -45,16 +45,15 @@ class Converter(val channel: Channel<RowData>) {
     suspend fun readRestToMeta() {
         logger.info { "current meta = $metaData" }
         logger.info { "try readRestToMeta" }
-
-//        for (data in channel) {
-//            logger.info { "receive rest data = $data" }
-//            data.data.forEach { ref, value -> metaData["$ref${rowData.rowNum + 1}#${rowData.sheetNum}"] = value.data }
-//        }
-
-        readRowData()
-
-//        channel.close()
+        var receiveOrNull: RowData?
+        do {
+            receiveOrNull = channel.receiveOrNull()
+            if (receiveOrNull != null) {
+                saveToMeta(receiveOrNull)
+            }
+        } while (receiveOrNull != null)
         logger.info { "end readRestToMeta" }
+        logger.info { "final meta = $metaData" }
     }
 
     suspend fun getRow(): RowData {
@@ -65,8 +64,8 @@ class Converter(val channel: Channel<RowData>) {
     }
 
     suspend fun stream(startCondition: (rowData:RowData) -> Boolean,
-               endCondition: (rowData:RowData) -> Boolean,
-               proccess: suspend (row: RowData) -> Unit) {
+                       endCondition: (rowData:RowData) -> Boolean,
+                       process: suspend (row: RowData) -> Unit) {
         if (state == ReadState.META) {
             while (!startCondition(readRowData())) {
                 saveToMeta(rowData)
@@ -74,7 +73,7 @@ class Converter(val channel: Channel<RowData>) {
             state = ReadState.STREAM
             if (startCondition(rowData) && !endCondition(rowData)) {
                 do {
-                    proccess(rowData)
+                    process(rowData)
                     readRowData()
                 } while (startCondition(rowData) && !endCondition(rowData))
                 saveToMeta(rowData)

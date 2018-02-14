@@ -46,13 +46,14 @@ class Reader(private val channel: Channel<RowData>) {
                         .map { cell: Cell -> CellData.of(cell) }
                         .associateBy { cellData: CellData -> cellData.ref }
                         .also { cells ->
-                            //println("prepare to send row ${row.rowNum}")
+                            logger.info { "prepare to send row ${row.rowNum}" }
                             logger.info { "Send $cells" }
                             channel.send(RowData(sheetNum + 1, row.rowNum, cells))
-                            //println("sent to send row ${row.rowNum}")
+                            logger.info { "Sent ${row.rowNum}" }
                         }
             }
         }
+        channel.close()
     }
 
 }
