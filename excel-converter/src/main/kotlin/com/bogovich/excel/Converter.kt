@@ -9,10 +9,9 @@ class Converter {
     companion object : KLogging()
 
     private val mainFileChannel = Channel<RowData>()
-    val restFileChannel = Channel<RowData>()
-    val metaData = mutableMapOf<String, String>()
+    private val restFileChannel = Channel<RowData>()
+    private val metaData = mutableMapOf<String, String>()
     private lateinit var rowData: RowData
-    var sheetNum: Int = 1
     var rowNum: Int = 0
     var state: ReadState = ReadState.META
     val reader = Reader(mainFileChannel, restFileChannel)
