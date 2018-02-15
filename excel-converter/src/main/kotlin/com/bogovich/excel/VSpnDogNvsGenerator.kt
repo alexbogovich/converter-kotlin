@@ -48,121 +48,123 @@ fun main(args: Array<String>) = runBlocking {
 
     converter.document {
         "ЭДПФР" tag {
-            "Реквизиты" tag {
-                "Дата" tag converter.cellDate("B3")
-                "Номер" tag converter.cell("D3")
-            }
-            "НПФ" tag {
-                "НаименованиеФормализованное" tag converter.cell("D11")
-                "ИНН" tag converter.cell("D9")
-            }
-            "СписокСведений" tag {
-                converter.stream({ row -> row.rowNum >= 16 && row.sheetNum == 1 },
-                        { row -> row.data["A"]?.stringCellValue.isNullOrEmpty() }) { row ->
-                    var rowTotalSpn = BigDecimal.ZERO
-                    "Запись" tag {
-                        "НомерПП" tag ++total.zlCount
-                        "ЗЛ" tag {
-                            "ФИО" tag {
-                                "Фамилия" tag row.cell("B")
-                                "Имя" tag row.cell("C")
-                                "Отчество" tag row.cell("D")
+            "РНПФ" tag {
+                "Реквизиты" tag {
+                    "Дата" tag converter.cellDate("B3")
+                    "Номер" tag converter.cell("D3")
+                }
+                "НПФ" tag {
+                    "НаименованиеФормализованное" tag converter.cell("D11")
+                    "ИНН" tag converter.cell("D9")
+                }
+                "СписокСведений" tag {
+                    converter.stream({ row -> row.rowNum >= 16 && row.sheetNum == 1 },
+                            { row -> row.data["A"]?.stringCellValue.isNullOrEmpty() }) { row ->
+                        var rowTotalSpn = BigDecimal.ZERO
+                        "Запись" tag {
+                            "НомерПП" tag ++total.zlCount
+                            "ЗЛ" tag {
+                                "ФИО" tag {
+                                    "Фамилия" tag row.cell("B")
+                                    "Имя" tag row.cell("C")
+                                    "Отчество" tag row.cell("D")
+                                }
+                                "Пол" tag row.cell("G")
+                                "ДатаРождения" tag row.cellDate("E")
+                                "МестоРождения" tag {
+                                    "ТипМестаРождения" tag "СТАНДАРТНОЕ"
+                                    "ГородРождения" tag row.cell("F")
+                                    "СтранаРождения" tag "РФ"
+                                }
+                                "СтраховойНомер" tag "${row.cell("H")} ${row.cell("I")}"
                             }
-                            "Пол" tag row.cell("G")
-                            "ДатаРождения" tag row.cellDate("E")
-                            "МестоРождения" tag {
-                                "ТипМестаРождения" tag "СТАНДАРТНОЕ"
-                                "ГородРождения" tag row.cell("F")
-                                "СтранаРождения" tag "РФ"
+                            "СуммыПереданные" tag {
+                                "СВ" tag {
+                                    "Сумма" tag row.cellMoney("J").also {
+                                        total.transferSums.sv.sum += it
+                                        rowTotalSpn += it
+                                    }
+                                    "ИД" tag row.cellMoney("K").also {
+                                        total.transferSums.sv.id += it
+                                        rowTotalSpn += it
+                                    }
+                                }
+                                "ДСВ" tag {
+                                    "Сумма" tag row.cellMoney("L").also {
+                                        total.transferSums.dsv.sum += it
+                                        rowTotalSpn += it
+                                    }
+                                    "ИД" tag row.cellMoney("M").also {
+                                        total.transferSums.dsv.id += it
+                                        rowTotalSpn += it
+                                    }
+                                }
+                                "СОФН" tag {
+                                    "Сумма" tag row.cellMoney("N").also {
+                                        total.transferSums.sofn.sum += it
+                                        rowTotalSpn += it
+                                    }
+                                    "ИД" tag row.cellMoney("O").also {
+                                        total.transferSums.sofn.id += it
+                                        rowTotalSpn += it
+                                    }
+                                }
+                                "МСК" tag {
+                                    "Сумма" tag row.cellMoney("P").also {
+                                        total.transferSums.msk.sum += it
+                                        rowTotalSpn += it
+                                    }
+                                    "ИД" tag row.cellMoney("Q").also {
+                                        total.transferSums.msk.id += it
+                                        rowTotalSpn += it
+                                    }
+                                }
                             }
-                            "СтраховойНомер" tag "${row.cell("H")} ${row.cell("I")}"
+                            "ВсегоСПН" tag rowTotalSpn.also { total.transferSums.total += it }
                         }
+                        "ГарантийноеВосполнение" tag row.cellMoney("S").also {
+                            total.garanty += it
+                            rowTotalSpn += it
+                        }
+                        "Компенсация" tag row.cellMoney("T").also {
+                            total.compensation += it
+                            rowTotalSpn += it
+                        }
+                        "ВсегоПередано" tag rowTotalSpn.also { total.totalTransferred += it }
+                    }
+                }
+                "Итого" tag {
+                    "КоличествоЗЛ" tag total.zlCount
+                    "СуммыПереданные" tag {
                         "СуммыПереданные" tag {
                             "СВ" tag {
-                                "Сумма" tag row.cellMoney("J").also {
-                                    total.transferSums.sv.sum += it
-                                    rowTotalSpn += it
-                                }
-                                "ИД" tag row.cellMoney("K").also {
-                                    total.transferSums.sv.id += it
-                                    rowTotalSpn += it
-                                }
+                                "Сумма" tag total.transferSums.sv.sum
+                                "ИД" tag total.transferSums.sv.id
                             }
                             "ДСВ" tag {
-                                "Сумма" tag row.cellMoney("L").also {
-                                    total.transferSums.dsv.sum += it
-                                    rowTotalSpn += it
-                                }
-                                "ИД" tag row.cellMoney("M").also {
-                                    total.transferSums.dsv.id += it
-                                    rowTotalSpn += it
-                                }
+                                "Сумма" tag total.transferSums.dsv.sum
+                                "ИД" tag total.transferSums.dsv.id
                             }
                             "СОФН" tag {
-                                "Сумма" tag row.cellMoney("N").also {
-                                    total.transferSums.sofn.sum += it
-                                    rowTotalSpn += it
-                                }
-                                "ИД" tag row.cellMoney("O").also {
-                                    total.transferSums.sofn.id += it
-                                    rowTotalSpn += it
-                                }
+                                "Сумма" tag total.transferSums.sofn.sum
+                                "ИД" tag total.transferSums.sofn.id
                             }
                             "МСК" tag {
-                                "Сумма" tag row.cellMoney("P").also {
-                                    total.transferSums.msk.sum += it
-                                    rowTotalSpn += it
-                                }
-                                "ИД" tag row.cellMoney("Q").also {
-                                    total.transferSums.msk.id += it
-                                    rowTotalSpn += it
-                                }
+                                "Сумма" tag total.transferSums.msk.sum
+                                "ИД" tag total.transferSums.msk.id
                             }
+                            "ВсегоСПН" tag total.transferSums.total
                         }
-                        "ВсегоСПН" tag rowTotalSpn.also { total.transferSums.total += it }
                     }
-                    "ГарантийноеВосполнение" tag row.cellMoney("S").also {
-                        total.garanty += it
-                        rowTotalSpn += it
-                    }
-                    "Компенсация" tag row.cellMoney("T").also {
-                        total.compensation += it
-                        rowTotalSpn += it
-                    }
-                    "ВсегоПередано" tag rowTotalSpn.also { total.totalTransferred += it }
+                    "ГарантийноеВосполнение" tag total.garanty
+                    "Компенсация" tag total.compensation
+                    "ВсегоПередано" tag total.totalTransferred
                 }
-            }
-            "Итого" tag {
-                "КоличествоЗЛ" tag total.zlCount
-                "СуммыПереданные" tag {
-                    "СуммыПереданные" tag {
-                        "СВ" tag {
-                            "Сумма" tag total.transferSums.sv.sum
-                            "ИД" tag total.transferSums.sv.id
-                        }
-                        "ДСВ" tag {
-                            "Сумма" tag total.transferSums.dsv.sum
-                            "ИД" tag total.transferSums.dsv.id
-                        }
-                        "СОФН" tag {
-                            "Сумма" tag total.transferSums.sofn.sum
-                            "ИД" tag total.transferSums.sofn.id
-                        }
-                        "МСК" tag {
-                            "Сумма" tag total.transferSums.msk.sum
-                            "ИД" tag total.transferSums.msk.id
-                        }
-                        "ВсегоСПН" tag total.transferSums.total
-                    }
+                "СлужебнаяИнформация" tag {
+                    "GUID" tag UUID.randomUUID()
+                    "ДатаВремя" tag LocalDateTime.now()
+                    "ЗаГод" tag LocalDateTime.now().year
                 }
-                "ГарантийноеВосполнение" tag total.garanty
-                "Компенсация" tag total.compensation
-                "ВсегоПередано" tag total.totalTransferred
-            }
-            "СлужебнаяИнформация" tag {
-                "GUID" tag UUID.randomUUID()
-                "ДатаВремя" tag LocalDateTime.now()
-                "ЗаГод" tag LocalDateTime.now().year
             }
         }
     }
