@@ -9,6 +9,8 @@ import javax.xml.stream.XMLStreamWriter
 class DslXMLStreamWriter(writer: XMLStreamWriter?) : IndentingXMLStreamWriter(writer) {
     companion object : KLogging()
 
+    private val namespaceMapping = HashMap<String, String>()
+
     fun document(init: xmlStreamLambda): DslXMLStreamWriter {
         this.writeStartDocument()
         this.init()
@@ -17,15 +19,15 @@ class DslXMLStreamWriter(writer: XMLStreamWriter?) : IndentingXMLStreamWriter(wr
         return this
     }
 
-    fun element(name: String, init: xmlStreamLambda): DslXMLStreamWriter {
+    private fun element(name: String, init: xmlStreamLambda): DslXMLStreamWriter {
         this.writeStartElement(name)
         this.init()
         this.writeEndElement()
         return this
     }
 
-    fun element(namespace: String, name: String, init: xmlStreamLambda): DslXMLStreamWriter {
-        this.writeStartElement(namespace, name)
+    private fun element(namespace: String, tagName: String, init: xmlStreamLambda): DslXMLStreamWriter {
+        this.writeStartElement(namespace, tagName)
         this.init()
         this.writeEndElement()
         return this
@@ -37,17 +39,18 @@ class DslXMLStreamWriter(writer: XMLStreamWriter?) : IndentingXMLStreamWriter(wr
     }
 
     fun namespace(prefix: String, namespace: String): DslXMLStreamWriter {
+        namespaceMapping[prefix] = namespace
         this.writeNamespace(prefix, namespace)
         return this
     }
 
-    fun element(name: String, content: Any) {
+    private fun element(name: String, content: Any) {
         element(name) {
             writeCharacters(content.toString())
         }
     }
 
-    fun element(namespace: String, name: String, content: Any) {
+    private fun element(namespace: String, name: String, content: Any) {
         element(namespace, name) {
             writeCharacters(content.toString())
         }
@@ -57,6 +60,27 @@ class DslXMLStreamWriter(writer: XMLStreamWriter?) : IndentingXMLStreamWriter(wr
 
     infix fun String.tag(value: Any) {
         element(this, value)
+    }
+
+    infix operator fun String.invoke(value: Any) {
+        if (this.contains(":")) {
+            val tag = this.split(":")
+            element(namespaceMapping[tag[0]]!!, tag[1], value)
+        } else {
+            element(this, value)
+        }
+    }
+
+    infix operator fun String.invoke(lambda: xmlStreamLambda) {
+        if (this.contains(":")) {
+            val tag = this.split(":")
+            if (!namespaceMapping.contains(tag[0])) {
+                throw RuntimeException("Prefix ${tag[0]} not in ${namespaceMapping}")
+            }
+            element(namespaceMapping[tag[0]]!!, tag[1], lambda)
+        } else {
+            element(this,lambda)
+        }
     }
 
     infix fun String.tag(lambda: xmlStreamLambda) {
