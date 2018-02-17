@@ -1,21 +1,26 @@
 package com.bogovich.utils
 
-import org.junit.jupiter.api.*
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertThrows
+import org.junit.jupiter.api.DynamicTest.dynamicTest
+import org.junit.jupiter.api.Nested
+import org.junit.jupiter.api.TestFactory
+import org.junit.jupiter.api.TestInstance
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 internal class InsuredPersonUtilsTest {
 
     @TestFactory
     fun `calculate control number`() = validInsuredPersonProvider.map { data ->
-        DynamicTest.dynamicTest("calculate control code ${data.code} from ${data.number}") {
-            Assertions.assertEquals(data.code, InsuredPersonUtils.controlNumber(data.number))
+        dynamicTest("calculate control code ${data.code} from ${data.number}") {
+            assertEquals(data.code, InsuredPersonUtils.controlNumber(data.number))
         }
     }
 
     @TestFactory
     fun `calculate insured number`() = validInsuredPersonProvider.map { data ->
-        DynamicTest.dynamicTest("get insured number ${data.resultCode} from ${data.number}") {
-            Assertions.assertEquals(data.resultCode, InsuredPersonUtils.formattedNumber(data.number))
+        dynamicTest("get insured number ${data.resultCode} from ${data.number}") {
+            assertEquals(data.resultCode, InsuredPersonUtils.formattedNumber(data.number))
         }
     }
 
@@ -31,8 +36,8 @@ internal class InsuredPersonUtilsTest {
     inner class ErrorCases {
         @TestFactory
         fun `exception on invalid insured number`() = invalidNumber.map { invalidNumber ->
-            DynamicTest.dynamicTest("exception for $invalidNumber") {
-                Assertions.assertThrows(IllegalArgumentException::class.java) {
+            dynamicTest("exception for $invalidNumber") {
+                assertThrows(IllegalArgumentException::class.java) {
                     InsuredPersonUtils.formattedNumber(invalidNumber)
                 }
             }
