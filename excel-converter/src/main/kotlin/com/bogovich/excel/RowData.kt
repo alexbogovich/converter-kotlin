@@ -20,6 +20,9 @@ data class RowData (val sheetNum: Int, val rowNum: Int, val data:Map<String, Cel
     fun cellDate(shortRef: String): LocalDate {
         return data[shortRef]?.dateCellValue!!.toInstant().atZone(ZoneId.systemDefault()).toLocalDate()
     }
+    fun cellLong(shortRef: String): Long {
+        return cell(shortRef).toLong()
+    }
 }
 
 

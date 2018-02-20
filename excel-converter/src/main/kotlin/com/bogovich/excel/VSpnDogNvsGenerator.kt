@@ -77,7 +77,7 @@ fun main(args: Array<String>) = runBlocking {
                                     "ГородРождения" tag cell("F")
                                     "СтранаРождения" tag "РФ"
                                 }
-                                "СтраховойНомер" tag InsuredPersonUtils.formattedNumber(cell("H").toLong())
+                                "СтраховойНомер" tag InsuredPersonUtils.formattedNumber(cellLong("H"))
                             }
                             "СуммыПереданные" {
                                 "СВ" {
