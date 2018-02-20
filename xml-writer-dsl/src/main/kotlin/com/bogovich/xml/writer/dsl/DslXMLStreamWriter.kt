@@ -75,7 +75,7 @@ class DslXMLStreamWriter(writer: XMLStreamWriter?) : IndentingXMLStreamWriter(wr
         if (this.contains(":")) {
             val tag = this.split(":")
             if (!namespaceMapping.contains(tag[0])) {
-                throw RuntimeException("Prefix ${tag[0]} not in ${namespaceMapping}")
+                throw RuntimeException("Prefix ${tag[0]} not in $namespaceMapping")
             }
             element(namespaceMapping[tag[0]]!!, tag[1], lambda)
         } else {

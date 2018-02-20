@@ -80,7 +80,7 @@ class Converter {
 
     suspend fun stream(startCondition: (rowData: RowData) -> Boolean,
                        endCondition: (rowData: RowData) -> Boolean,
-                       process: suspend (row: RowData) -> Unit) {
+                       process: suspend RowData.() -> Unit) {
         if (state == ReadState.META) {
             while (!startCondition(readRowData())) {
                 saveToMeta(rowData)
