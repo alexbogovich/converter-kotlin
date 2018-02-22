@@ -25,10 +25,18 @@ fun main(args: Array<String>) {
 
     val errors = mutableListOf<SAXParseException?>()
 
-    validator.errorHandler = object: ErrorHandler {
-        override fun warning(exception: SAXParseException?) { errors.add(exception) }
-        override fun error(exception: SAXParseException?) { errors.add(exception) }
-        override fun fatalError(exception: SAXParseException?) { errors.add(exception) }
+    validator.errorHandler = object : ErrorHandler {
+        override fun warning(exception: SAXParseException?) {
+            errors.add(exception)
+        }
+
+        override fun error(exception: SAXParseException?) {
+            errors.add(exception)
+        }
+
+        override fun fatalError(exception: SAXParseException?) {
+            errors.add(exception)
+        }
     }
 
     val targetFile = File("H:\\ПФР_777000_УЗР_2018-02-16_d91283f3-039a-4887-9000-35e38ebdbdc3.xml.gz")
