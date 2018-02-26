@@ -1,13 +1,20 @@
 package com.bogovich.excel
 
+import com.bogovich.utils.AfValidationUtils
 import com.bogovich.utils.InsuredPersonUtils
 import com.bogovich.xml.writer.dsl.CoroutineXMLStreamWriter
 import kotlinx.coroutines.experimental.cancelAndJoin
 import kotlinx.coroutines.experimental.launch
 import kotlinx.coroutines.experimental.runBlocking
+import java.io.BufferedWriter
+import java.io.File
+import java.io.FileOutputStream
+import java.io.OutputStreamWriter
 import java.math.BigDecimal
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
+import java.util.zip.GZIPOutputStream
 import javax.xml.stream.XMLOutputFactory
 
 
@@ -30,8 +37,15 @@ fun main(args: Array<String>) = runBlocking {
         converter.closeChannels()
     }
 
-    val out = System.out
-    converter.writer = CoroutineXMLStreamWriter(XMLOutputFactory.newFactory().createXMLStreamWriter(out, "UTF-8"))
+    val guid = UUID.randomUUID().toString()
+    val localDate = LocalDate.now().toString()
+    val file = File("h:\\ПФР_777000_РНПФ_${localDate}_$guid.xml.gz")
+    val fileWriter = BufferedWriter(OutputStreamWriter(GZIPOutputStream(FileOutputStream(file)), "UTF-8"))
+//
+//    val out = System.out
+//    converter.writer = CoroutineXMLStreamWriter(XMLOutputFactory.newFactory().createXMLStreamWriter(out, "UTF-8"))
+
+    converter.writer = CoroutineXMLStreamWriter(XMLOutputFactory.newFactory().createXMLStreamWriter(fileWriter))
 
     val total = object {
         var zlCount: Long = 0
@@ -49,125 +63,134 @@ fun main(args: Array<String>) = runBlocking {
 
     converter.document {
         "ЭДПФР" {
+            defaultNamespace("http://пф.рф/ВсВО/НПФ/РНПФ/2017-08-09")
+            namespace("ВНПФ", "http://пф.рф/ВсВО/НПФ/типыВходящие/2017-08-09")
+            namespace("НПФ", "http://пф.рф/ВсВО/НПФ/типы/2017-08-09")
+            namespace("УТ", "http://пф.рф/унифицированныеТипы/2014-01-01")
+            namespace("АФ", "http://пф.рф/АФ")
             "РНПФ" {
                 "Реквизиты" {
-                    "Дата" tag converter.cellDate("B3")
-                    "Номер" tag converter.cell("D3")
+                    "УТ:Дата" tag converter.cellDate("B3")
+                    "УТ:Номер" tag converter.cell("D3")
                 }
                 "НПФ" {
-                    "НаименованиеФормализованное" tag converter.cell("D11")
-                    "ИНН" tag converter.cell("D9")
+                    "НПФ:НаименованиеФормализованное" tag converter.cell("D11")
+                    "НПФ:ИНН" tag converter.cell("D9")
                 }
                 "СписокСведений" {
                     converter.stream({ row -> row.rowNum >= 16 && row.sheetNum == 1 },
                             { row -> row.data["A"]?.stringCellValue.isNullOrEmpty() }) {
                         var rowTotalSpn = BigDecimal.ZERO
                         "Запись" {
-                            "НомерПП" tag ++total.zlCount
-                            "ЗЛ" {
-                                "ФИО" {
-                                    "Фамилия" tag cell("B")
-                                    "Имя" tag cell("C")
-                                    "Отчество" tag cell("D")
+                            "ВНПФ:НомерПП" tag ++total.zlCount
+                            "ВНПФ:ЗЛ" {
+                                "УТ:ФИО" {
+                                    "УТ:Фамилия" tag cell("B")
+                                    "УТ:Имя" tag cell("C")
+                                    "УТ:Отчество" tag cell("D")
                                 }
-                                "Пол" tag cell("G")
-                                "ДатаРождения" tag cellDate("E")
-                                "МестоРождения" {
-                                    "ТипМестаРождения" tag "СТАНДАРТНОЕ"
-                                    "ГородРождения" tag cell("F")
-                                    "СтранаРождения" tag "РФ"
+                                "УТ:Пол" tag cell("G")
+                                "УТ:ДатаРождения" tag cellDate("E")
+                                "УТ:МестоРождения" {
+                                    "УТ:ТипМестаРождения" tag "СТАНДАРТНОЕ"
+                                    "УТ:ГородРождения" tag cell("F")
+                                    "УТ:СтранаРождения" tag "РФ"
                                 }
-                                "СтраховойНомер" tag InsuredPersonUtils.formattedNumber(cellLong("H"))
+                                "УТ:СтраховойНомер" tag InsuredPersonUtils.formattedNumber(cellLong("H"))
                             }
-                            "СуммыПереданные" {
-                                "СВ" {
-                                    "Сумма" tag cellMoney("J").also {
+                            "НПФ:СуммыПереданные" {
+                                "НПФ:СВ" {
+                                    "НПФ:Сумма" tag cellMoney("J").also {
                                         total.transferSums.sv.sum += it
                                         rowTotalSpn += it
                                     }
-                                    "ИД" tag cellMoney("K").also {
+                                    "НПФ:ИД" tag cellMoney("K").also {
                                         total.transferSums.sv.id += it
                                         rowTotalSpn += it
                                     }
                                 }
-                                "ДСВ" {
-                                    "Сумма" tag cellMoney("L").also {
+                                "НПФ:ДСВ" {
+                                    "НПФ:Сумма" tag cellMoney("L").also {
                                         total.transferSums.dsv.sum += it
                                         rowTotalSpn += it
                                     }
-                                    "ИД" tag cellMoney("M").also {
+                                    "НПФ:ИД" tag cellMoney("M").also {
                                         total.transferSums.dsv.id += it
                                         rowTotalSpn += it
                                     }
                                 }
-                                "СОФН" {
-                                    "Сумма" tag cellMoney("N").also {
+                                "НПФ:СОФН" {
+                                    "НПФ:Сумма" tag cellMoney("N").also {
                                         total.transferSums.sofn.sum += it
                                         rowTotalSpn += it
                                     }
-                                    "ИД" tag cellMoney("O").also {
+                                    "НПФ:ИД" tag cellMoney("O").also {
                                         total.transferSums.sofn.id += it
                                         rowTotalSpn += it
                                     }
                                 }
-                                "МСК" {
-                                    "Сумма" tag cellMoney("P").also {
+                                "НПФ:МСК" {
+                                    "НПФ:Сумма" tag cellMoney("P").also {
                                         total.transferSums.msk.sum += it
                                         rowTotalSpn += it
                                     }
-                                    "ИД" tag cellMoney("Q").also {
+                                    "НПФ:ИД" tag cellMoney("Q").also {
                                         total.transferSums.msk.id += it
                                         rowTotalSpn += it
                                     }
                                 }
+                                "НПФ:ВсегоСПН" tag rowTotalSpn.also { total.transferSums.total += it }
                             }
-                            "ВсегоСПН" tag rowTotalSpn.also { total.transferSums.total += it }
+                            "НПФ:ГарантийноеВосполнение" tag cellMoney("S").also {
+                                total.garanty += it
+                                rowTotalSpn += it
+                            }
+                            "НПФ:Компенсация" tag cellMoney("T").also {
+                                total.compensation += it
+                                rowTotalSpn += it
+                            }
+                            "НПФ:ВсегоПередано" tag rowTotalSpn.also { total.totalTransferred += it }
                         }
-                        "ГарантийноеВосполнение" tag cellMoney("S").also {
-                            total.garanty += it
-                            rowTotalSpn += it
-                        }
-                        "Компенсация" tag cellMoney("T").also {
-                            total.compensation += it
-                            rowTotalSpn += it
-                        }
-                        "ВсегоПередано" tag rowTotalSpn.also { total.totalTransferred += it }
                     }
                 }
                 "Итого" {
                     "КоличествоЗЛ" tag total.zlCount
-                    "СуммыПереданные" tag {
-                        "СуммыПереданные" tag {
-                            "СВ" {
-                                "Сумма" tag total.transferSums.sv.sum
-                                "ИД" tag total.transferSums.sv.id
-                            }
-                            "ДСВ" {
-                                "Сумма" tag total.transferSums.dsv.sum
-                                "ИД" tag total.transferSums.dsv.id
-                            }
-                            "СОФН" {
-                                "Сумма" tag total.transferSums.sofn.sum
-                                "ИД" tag total.transferSums.sofn.id
-                            }
-                            "МСК" {
-                                "Сумма" tag total.transferSums.msk.sum
-                                "ИД" tag total.transferSums.msk.id
-                            }
-                            "ВсегоСПН" tag total.transferSums.total
+                    "НПФ:СуммыПереданные" tag {
+                        "НПФ:СВ" {
+                            "НПФ:Сумма" tag total.transferSums.sv.sum
+                            "НПФ:ИД" tag total.transferSums.sv.id
                         }
+                        "НПФ:ДСВ" {
+                            "НПФ:Сумма" tag total.transferSums.dsv.sum
+                            "НПФ:ИД" tag total.transferSums.dsv.id
+                        }
+                        "НПФ:СОФН" {
+                            "НПФ:Сумма" tag total.transferSums.sofn.sum
+                            "НПФ:ИД" tag total.transferSums.sofn.id
+                        }
+                        "НПФ:МСК" {
+                            "НПФ:Сумма" tag total.transferSums.msk.sum
+                            "НПФ:ИД" tag total.transferSums.msk.id
+                        }
+                        "НПФ:ВсегоСПН" tag total.transferSums.total
                     }
-                    "ГарантийноеВосполнение" tag total.garanty
-                    "Компенсация" tag total.compensation
-                    "ВсегоПередано" tag total.totalTransferred
+                    "НПФ:ГарантийноеВосполнение" tag total.garanty
+                    "НПФ:Компенсация" tag total.compensation
+                    "НПФ:ВсегоПередано" tag total.totalTransferred
                 }
-                "СлужебнаяИнформация" {
-                    "GUID" tag UUID.randomUUID()
-                    "ДатаВремя" tag LocalDateTime.now()
-                    "ЗаГод" tag LocalDateTime.now().year
-                }
+            }
+            "СлужебнаяИнформация" {
+                "АФ:GUID" tag UUID.randomUUID()
+                "АФ:ДатаВремя" tag LocalDateTime.now()
+                "НПФ:Составитель" tag ""
+                "НПФ:НомерДокументаОрганизации" tag 123
+                "НПФ:ЗаГод" tag LocalDateTime.now().year
             }
         }
     }
     job.cancelAndJoin()
+    fileWriter.close()
+
+    val errors = AfValidationUtils.getNewErrorList()
+    AfValidationUtils.validateDocument(file, "РНПФ", "C:/Users/aleksandr.bogovich/Desktop/uspn/Design&Analysis/Technical Specification/Альбом Форматов/АФ 2.19.2д 17.01.2018/Схемы", errors)
 }

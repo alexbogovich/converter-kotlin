@@ -40,6 +40,7 @@ class CoroutineXMLStreamWriter(writer: XMLStreamWriter?) : IndentingXMLStreamWri
     }
 
     suspend fun namespace(prefix: String, namespace: String): CoroutineXMLStreamWriter {
+        namespaceMapping[prefix] = namespace
         this.writeNamespace(prefix, namespace)
         return this
     }
