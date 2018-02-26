@@ -42,7 +42,7 @@ object AfValidationUtils {
             return paths
                     .filter { path -> path.toFile().isFile }
                     .filter { path -> path.isXsdAndNameContain(containDateRegex) }
-                    .peek({ t -> println(t) })
+                    .peek({ path -> logger.info { "find schema $path" } })
                     .collect(Collectors.groupingBy { path: Path ->
                         path.fileName.toString().split("_").first()
                     })
@@ -55,14 +55,17 @@ object AfValidationUtils {
         validator.errorHandler = object : ErrorHandler {
             override fun warning(exception: SAXParseException?) {
                 errorTargetCollection.add(exception)
+                logger.info { "Find validate warning ${exception?.message}" }
             }
 
             override fun error(exception: SAXParseException?) {
                 errorTargetCollection.add(exception)
+                logger.info { "Find validate error ${exception?.message}" }
             }
 
             override fun fatalError(exception: SAXParseException?) {
                 errorTargetCollection.add(exception)
+                logger.info { "Find validate fatalError ${exception?.message}" }
             }
         }
         return validator
