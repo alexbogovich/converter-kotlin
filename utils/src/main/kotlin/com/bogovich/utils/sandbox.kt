@@ -56,14 +56,14 @@ fun getAllSchemas(schemaFolder: String): Map<String, List<Path>> {
     Files.walk(Paths.get(schemaFolder)).use({ paths ->
         return paths
                 .filter { path -> path.toFile().isFile }
-                .filter { path ->
-                    path.fileName.toString().run {
-                        endsWith(".xsd") && contains(containDateRegex)
-                    }
-                }
+                .filter { path -> path.isXsdAndNameContain(containDateRegex) }
                 .peek({ t -> println(t) })
                 .collect(groupingBy { path: Path -> path.fileName.toString().split("_").first() })
     })
+}
+
+fun Path.isXsdAndNameContain(pattern: Regex) = fileName.toString().run {
+    endsWith(".xsd") && contains(pattern)
 }
 
 fun getSchemaFactory(): SchemaFactory {
