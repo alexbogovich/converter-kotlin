@@ -11,17 +11,17 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.stream.Collectors.groupingBy
-import java.util.zip.ZipInputStream
+import java.util.zip.GZIPInputStream
 import javax.xml.XMLConstants
 import javax.xml.transform.stream.StreamSource
 import javax.xml.validation.SchemaFactory
 
 
 fun main(args: Array<String>) {
-    val schemas = getAllSchemas("/home/alex/Documents/АФ 2.20.6д/Схемы")
+    val schemas = getAllSchemas("C:/Users/aleksandr.bogovich/Desktop/uspn/Design&Analysis/Technical Specification/Альбом Форматов/АФ 2.19.2д 17.01.2018/Схемы")
 
 
-    val validator = getSchemaFactory().newSchema(schemas["РНПФ-А"]!!.first().toFile()).newValidator()
+    val validator = getSchemaFactory().newSchema(schemas["РНПФ-М"]!!.first().toFile()).newValidator()
 
     val errors = mutableListOf<SAXParseException?>()
 
@@ -39,11 +39,8 @@ fun main(args: Array<String>) {
         }
     }
 
-    val targetFile = File("/home/alex/Documents/АФ 2.20" +
-            ".6д/Примеры/ВСВО/НПФ/Входящие/ПФР_7707492166_000_РНПФ-А_20170809_c23e739a-090f-49d8-a10a-c8ea16535f3f.XML.zip")
-    val validateStream = StreamSource(ZipInputStream(FileInputStream(targetFile)))
-
-
+    val targetFile = File("C:/Users/aleksandr.bogovich/Desktop/uspn/Design&Analysis/Technical Specification/Альбом Форматов/АФ 2.19.2д 17.01.2018/Примеры/ВСВО/НПФ/Входящие/ПФР_7707492166_000_РНПФ-М_20170809_786f1997-bd1e-4122-ba04-5a114ef6e70a.xml.gz")
+    val validateStream = StreamSource(GZIPInputStream(FileInputStream(targetFile)))
 
     validator.validate(validateStream)
 
