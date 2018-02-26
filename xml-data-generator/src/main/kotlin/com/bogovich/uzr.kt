@@ -2,6 +2,8 @@
 
 package com.bogovich
 
+import com.bogovich.utils.AfValidationUtils.getNewErrorList
+import com.bogovich.utils.AfValidationUtils.validateDocument
 import com.bogovich.utils.InsuredPersonUtils
 import com.bogovich.xml.writer.dsl.DslXMLStreamWriter
 import java.io.BufferedWriter
@@ -31,6 +33,9 @@ fun main(args: Array<String>) {
             println("Total time $it =  ${it / 1000}s")
         }
     }
+
+    val errors = getNewErrorList()
+    validateDocument(file, "УЗР", "C:/Users/aleksandr.bogovich/Desktop/uspn/Design&Analysis/Technical Specification/Альбом Форматов/АФ 2.19.2д 17.01.2018/Схемы", errors)
 }
 
 private fun serialize04(writer: DslXMLStreamWriter) {
@@ -173,7 +178,7 @@ private fun serialize04(writer: DslXMLStreamWriter) {
                 "СписокСведений" {
                     "РеорганизованныйНПФ" {
                         var zlCount: Long = 0
-                        for (i in 1..5_000_000) {
+                        for (i in 1..5_000/*_000*/) {
                             if (i % 10000 == 0) {
                                 println("Write $i")
                             }

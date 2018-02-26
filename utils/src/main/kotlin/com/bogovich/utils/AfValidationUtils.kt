@@ -42,10 +42,12 @@ object AfValidationUtils {
             return paths
                     .filter { path -> path.toFile().isFile }
                     .filter { path -> path.isXsdAndNameContain(containDateRegex) }
-                    .peek({ path -> logger.info { "find schema $path" } })
                     .collect(Collectors.groupingBy { path: Path ->
                         path.fileName.toString().split("_").first()
                     })
+                    .also {
+                        logger.info { "Map ${it.size} schemas in $schemaFolder" }
+                    }
         })
     }
 
@@ -73,6 +75,14 @@ object AfValidationUtils {
 
     fun validateDocument(documentFile: File, afFileType: String, pathToSchemaFolder: String, errorTargetCollection: MutableCollection<SAXParseException?>) {
         getValidator(afFileType, pathToSchemaFolder, errorTargetCollection).validate(getSource(documentFile))
+        if (errorTargetCollection.isEmpty()) {
+            logger.info { "Validation passed" }
+        } else {
+            logger.error { "Validation failed. Errors:" }
+            errorTargetCollection.forEachIndexed { index, saxParseException ->
+                logger.error { "${index + 1}: $saxParseException" }
+            }
+        }
     }
 
     fun validateDocument(documentFile: File, validator: Validator) {
@@ -87,6 +97,8 @@ object AfValidationUtils {
         }
 
     }
+
+    fun getNewErrorList() = mutableListOf<SAXParseException?>()
 }
 
 fun Path.isXsdAndNameContain(pattern: Regex) = fileName.toString().run {
