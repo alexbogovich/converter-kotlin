@@ -12,14 +12,9 @@ import java.io.File
 import java.io.FileOutputStream
 import java.io.OutputStreamWriter
 import java.math.BigDecimal
-import java.time.LocalDate
-import java.time.LocalDateTime
-import java.util.*
 import java.util.zip.GZIPOutputStream
 import javax.xml.stream.XMLOutputFactory
 
-
-data class Sum(var sum: BigDecimal = BigDecimal.ZERO, var id: BigDecimal = BigDecimal.ZERO)
 
 fun main(args: Array<String>) = runBlocking {
     val logger = KotlinLogging.logger {}
@@ -39,9 +34,7 @@ fun main(args: Array<String>) = runBlocking {
         converter.closeChannels()
     }
 
-    val guid = UUID.randomUUID().toString()
-    val localDate = LocalDate.now().toString()
-    val file = File("h:\\ПФР_777000_РНПФ_${localDate}_$guid.xml.gz")
+    val file = File("h:\\ПФР_777000_РНПФ_${converter.commonValue.localDateTime.toLocalDate()}_${converter.commonValue.guid}.xml.gz")
     val fileWriter = BufferedWriter(OutputStreamWriter(GZIPOutputStream(FileOutputStream(file)), "UTF-8"))
 //
 //    val out = System.out
@@ -56,6 +49,7 @@ fun main(args: Array<String>) = runBlocking {
     } finally {
         job.cancelAndJoin()
         fileWriter.close()
+        logger.info { "Successful create ${file.absoluteFile}" }
     }
 
     val errors = AfValidationUtils.getNewErrorList()
@@ -196,11 +190,11 @@ suspend fun map(converter: Converter) {
                 }
             }
             "СлужебнаяИнформация" {
-                "АФ:GUID" tag UUID.randomUUID()
-                "АФ:ДатаВремя" tag LocalDateTime.now()
+                "АФ:GUID" tag converter.commonValue.guid
+                "АФ:ДатаВремя" tag converter.commonValue.localDateTime
                 "НПФ:Составитель" tag ""
                 "НПФ:НомерДокументаОрганизации" tag 123
-                "НПФ:ЗаГод" tag LocalDateTime.now().year
+                "НПФ:ЗаГод" tag converter.commonValue.localDateTime.year
             }
         }
     }
