@@ -6,6 +6,7 @@ import com.bogovich.xml.writer.dsl.CoroutineXMLStreamWriter
 import kotlinx.coroutines.experimental.cancelAndJoin
 import kotlinx.coroutines.experimental.launch
 import kotlinx.coroutines.experimental.runBlocking
+import mu.KotlinLogging
 import java.io.BufferedWriter
 import java.io.File
 import java.io.FileOutputStream
@@ -21,6 +22,7 @@ import javax.xml.stream.XMLOutputFactory
 data class Sum(var sum: BigDecimal = BigDecimal.ZERO, var id: BigDecimal = BigDecimal.ZERO)
 
 fun main(args: Array<String>) = runBlocking {
+    val logger = KotlinLogging.logger {}
     val converter = Converter()
 
     val job = launch {
@@ -47,6 +49,20 @@ fun main(args: Array<String>) = runBlocking {
 
     converter.writer = CoroutineXMLStreamWriter(XMLOutputFactory.newFactory().createXMLStreamWriter(fileWriter))
 
+    try {
+        map(converter)
+    } catch (e: Exception) {
+        logger.error { "Exception on converting: ${e.message}" }
+    } finally {
+        job.cancelAndJoin()
+        fileWriter.close()
+    }
+
+    val errors = AfValidationUtils.getNewErrorList()
+    AfValidationUtils.validateDocument(file, "РНПФ", "C:/Users/aleksandr.bogovich/Desktop/uspn/Design&Analysis/Technical Specification/Альбом Форматов/АФ 2.19.2д 17.01.2018/Схемы", errors)
+}
+
+suspend fun map(converter: Converter) {
     val total = object {
         var zlCount: Long = 0
         val transferSums = object {
@@ -188,9 +204,4 @@ fun main(args: Array<String>) = runBlocking {
             }
         }
     }
-    job.cancelAndJoin()
-    fileWriter.close()
-
-    val errors = AfValidationUtils.getNewErrorList()
-    AfValidationUtils.validateDocument(file, "РНПФ", "C:/Users/aleksandr.bogovich/Desktop/uspn/Design&Analysis/Technical Specification/Альбом Форматов/АФ 2.19.2д 17.01.2018/Схемы", errors)
 }
