@@ -2,7 +2,6 @@
 
 package com.bogovich
 
-import com.bogovich.utils.AfValidationUtils.getNewErrorList
 import com.bogovich.utils.AfValidationUtils.validateDocument
 import com.bogovich.utils.InsuredPersonUtils
 import com.bogovich.xml.writer.dsl.DslXMLStreamWriter
@@ -34,8 +33,8 @@ fun main(args: Array<String>) {
         }
     }
 
-    val errors = getNewErrorList()
-    validateDocument(file, "УЗР", "C:/Users/aleksandr.bogovich/Desktop/uspn/Design&Analysis/Technical Specification/Альбом Форматов/АФ 2.19.2д 17.01.2018/Схемы", errors)
+    val pathToSchemaFolder = "C:/Users/aleksandr.bogovich/Desktop/uspn/Design&Analysis/Technical Specification/Альбом Форматов/АФ 2.19.2д 17.01.2018/Схемы"
+    validateDocument(file, "УЗР", pathToSchemaFolder)
 }
 
 private fun serialize04(writer: DslXMLStreamWriter) {

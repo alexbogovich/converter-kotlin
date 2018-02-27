@@ -73,7 +73,8 @@ object AfValidationUtils {
         return validator
     }
 
-    fun validateDocument(documentFile: File, afFileType: String, pathToSchemaFolder: String, errorTargetCollection: MutableCollection<SAXParseException?>) {
+    fun validateDocument(documentFile: File, afFileType: String, pathToSchemaFolder: String, errorTargetCollection:
+    MutableCollection<SAXParseException?> = getNewErrorList()): Collection<SAXParseException?> {
         getValidator(afFileType, pathToSchemaFolder, errorTargetCollection).validate(getSource(documentFile))
         if (errorTargetCollection.isEmpty()) {
             logger.info { "Validation passed" }
@@ -83,6 +84,7 @@ object AfValidationUtils {
                 logger.error { "${index + 1}: $saxParseException" }
             }
         }
+        return errorTargetCollection
     }
 
     fun validateDocument(documentFile: File, validator: Validator) {
