@@ -2,3 +2,8 @@ dependencies {
     compile project(':utils')
     compile project(':xml-writer-dsl')
 }
+
+apply plugin: 'application'
+mainClassName = 'com.bogovich.uzr'
+
+//applicationDefaultJvmArgs = ["-Xmx256m"]

@@ -6,7 +6,7 @@ import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.ZoneId
 
-data class RowData (val sheetNum: Int, val rowNum: Int, val data:Map<String, Cell>) {
+data class RowData(val sheetNum: Int, val rowNum: Int, val data: Map<String, Cell>) {
     fun cell(shortRef: String, removeDoubleQuotes: Boolean = true): String {
         val s = data[shortRef]?.stringCellValue.orEmpty()
         if (removeDoubleQuotes && s.startsWith("\"") && s.endsWith("\"")) {
@@ -14,11 +14,17 @@ data class RowData (val sheetNum: Int, val rowNum: Int, val data:Map<String, Cel
         }
         return s
     }
+
     fun cellMoney(shortRef: String, removeDoubleQuotes: Boolean = true): BigDecimal {
         return cell(shortRef, removeDoubleQuotes).money()
     }
+
     fun cellDate(shortRef: String): LocalDate {
         return data[shortRef]?.dateCellValue!!.toInstant().atZone(ZoneId.systemDefault()).toLocalDate()
+    }
+
+    fun cellLong(shortRef: String): Long {
+        return cell(shortRef).toLong()
     }
 }
 

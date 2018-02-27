@@ -7,6 +7,9 @@ import javax.xml.stream.XMLStreamWriter
 
 
 class CoroutineXMLStreamWriter(writer: XMLStreamWriter?) : IndentingXMLStreamWriter(writer) {
+
+    private val namespaceMapping = HashMap<String, String>()
+
     companion object : KLogging()
 
     suspend fun document(init: xmlStreamCoroutine): CoroutineXMLStreamWriter {
@@ -37,6 +40,7 @@ class CoroutineXMLStreamWriter(writer: XMLStreamWriter?) : IndentingXMLStreamWri
     }
 
     suspend fun namespace(prefix: String, namespace: String): CoroutineXMLStreamWriter {
+        namespaceMapping[prefix] = namespace
         this.writeNamespace(prefix, namespace)
         return this
     }
@@ -73,5 +77,26 @@ class CoroutineXMLStreamWriter(writer: XMLStreamWriter?) : IndentingXMLStreamWri
 
     suspend infix fun String.attr(value: Any) {
         attribute(this, value)
+    }
+
+    suspend infix operator fun String.invoke(value: Any) {
+        if (this.contains(":")) {
+            val tag = this.split(":")
+            element(namespaceMapping[tag[0]]!!, tag[1], value)
+        } else {
+            element(this, value)
+        }
+    }
+
+    suspend infix operator fun String.invoke(lambda: xmlStreamCoroutine) {
+        if (this.contains(":")) {
+            val tag = this.split(":")
+            if (!namespaceMapping.contains(tag[0])) {
+                throw RuntimeException("Prefix ${tag[0]} not in $namespaceMapping")
+            }
+            element(namespaceMapping[tag[0]]!!, tag[1], lambda)
+        } else {
+            element(this,lambda)
+        }
     }
 }

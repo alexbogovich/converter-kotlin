@@ -21,6 +21,7 @@ class Converter {
     var rowNum: Int = 0
     var state: ReadState = ReadState.META
     val reader = Reader(mainFileChannel, restFileChannel)
+    val commonValue: CommonValue = CommonValue()
 
     suspend fun cell(ref: String, sheet: Int = 1): String {
 //        logger.info { "request cell $ref $sheet" }
@@ -80,7 +81,7 @@ class Converter {
 
     suspend fun stream(startCondition: (rowData: RowData) -> Boolean,
                        endCondition: (rowData: RowData) -> Boolean,
-                       process: suspend (row: RowData) -> Unit) {
+                       process: suspend RowData.() -> Unit) {
         if (state == ReadState.META) {
             while (!startCondition(readRowData())) {
                 saveToMeta(rowData)

@@ -6,10 +6,6 @@ object BigDecimalUtils {
     private val commaPattern = Regex("[,]")
 
     fun getMoney(value: String): BigDecimal {
-/*      возможные паттерны
-*       #,##
-*       #.##
-* */
         return BigDecimal(commaPattern.replace(value, "."))
     }
 }

@@ -1,162 +1,172 @@
+@file:JvmName("uzr")
+
 package com.bogovich
 
+import com.bogovich.utils.AfValidationUtils.getNewErrorList
+import com.bogovich.utils.AfValidationUtils.validateDocument
 import com.bogovich.utils.InsuredPersonUtils
 import com.bogovich.xml.writer.dsl.DslXMLStreamWriter
+import java.io.BufferedWriter
+import java.io.File
+import java.io.FileOutputStream
+import java.io.OutputStreamWriter
 import java.time.LocalDate
 import java.util.*
+import java.util.zip.GZIPOutputStream
 import javax.xml.stream.XMLOutputFactory
-
-
-const val UZR = "http://пф.рф/ВсВО/НПФ/УЗР/2017-08-09"
-const val I_NPF = "http://пф.рф/ВсВО/НПФ/типыВходящие/2017-08-09"
-const val NPF = "http://пф.рф/ВсВО/НПФ/типы/2017-08-09"
-const val UT = "http://пф.рф/унифицированныеТипы/2014-01-01"
-const val AF = "http://пф.рф/АФ"
+import kotlin.system.measureTimeMillis
 
 val guid = UUID.randomUUID().toString()
 val localDate = LocalDate.now().toString()
 
 fun main(args: Array<String>) {
-    val out = System.out
-    val writer = DslXMLStreamWriter(XMLOutputFactory.newFactory().createXMLStreamWriter(out, "UTF-8"))
-//    val file = File("h:\\ПФР_777000_УЗР_${localDate}_${guid}.xml.gz")
-//    val fileOutputStream: OutputStream = GZIPOutputStream(FileOutputStream(file))
-//    fileOutputStream.use {
-//        val writer = DslXMLStreamWriter(XMLOutputFactory.newFactory().createXMLStreamWriter(it, "UTF-8"))
-    serialize04(writer)
-//    }
+//    val out = System.out
+//    val writer = DslXMLStreamWriter(XMLOutputFactory.newFactory().createXMLStreamWriter(out, "UTF-8"))
+//    serialize04(writer)
+    val file = File("h:\\ПФР_777000_УЗР_${localDate}_$guid.xml.gz")
+    val fileOutputStream = BufferedWriter(OutputStreamWriter(GZIPOutputStream(FileOutputStream(file)), "UTF-8"))
+    fileOutputStream.use {
+        val writer = DslXMLStreamWriter(XMLOutputFactory.newFactory().createXMLStreamWriter(it))
+        measureTimeMillis {
+            serialize04(writer)
+        }.let {
+            println("Total time $it =  ${it / 1000}s")
+        }
+    }
+
+    val errors = getNewErrorList()
+    validateDocument(file, "УЗР", "C:/Users/aleksandr.bogovich/Desktop/uspn/Design&Analysis/Technical Specification/Альбом Форматов/АФ 2.19.2д 17.01.2018/Схемы", errors)
 }
 
 private fun serialize04(writer: DslXMLStreamWriter) {
     writer.document {
-        element("ЭДПФР") {
-            defaultNamespace(UZR)
-            namespace("ВНПФ", I_NPF)
-            namespace("НПФ", NPF)
-            namespace("УТ", UT)
-            namespace("АФ", AF)
+        "ЭДПФР" {
+            defaultNamespace("http://пф.рф/ВсВО/НПФ/УЗР/2017-08-09")
+            namespace("ВНПФ", "http://пф.рф/ВсВО/НПФ/типыВходящие/2017-08-09")
+            namespace("НПФ", "http://пф.рф/ВсВО/НПФ/типы/2017-08-09")
+            namespace("УТ", "http://пф.рф/унифицированныеТипы/2014-01-01")
+            namespace("АФ", "http://пф.рф/АФ")
 
-            element("УЗР") {
-                element("НПФ") {
-                    "Наименование" tag "НЕГОСУДАРСТВЕННЫЙ ПЕНСИОННЫЙ ФОНД ПЛЕС"
-                    element("НаименованиеФормализованное", "НПФ_ПЛЕС")
-                    element("ИНН", "7881020165")
-                    element("ОГРН", "1033628801099")
-                    "Лицензия" tag {
-                        UT to "Дата" tag "2010-08-08"
-                        UT to "Номер" tag 2308
+            "УЗР" {
+                "НПФ" {
+                    "Наименование"("НЕГОСУДАРСТВЕННЫЙ ПЕНСИОННЫЙ ФОНД ПЛЕС")
+                    "НаименованиеФормализованное"("НПФ_ПЛЕС")
+                    "ИНН"("7881020165")
+                    "ОГРН"("1033628801099")
+                    "Лицензия" {
+                        "УТ:Дата"("2010-08-08")
+                        "УТ:Номер"(2308)
                     }
-                    element("Адрес") {
-                        element(UT, "Индекс", "127001")
-                        element(UT, "РоссийскийАдрес") {
-                            element(UT, "Город") {
-                                element(UT, "Название", "МОСКВА")
-                                element(UT, "Сокращение", "г")
+                    "Адрес" {
+                        "УТ:Индекс"(127001)
+                        "УТ:РоссийскийАдрес" {
+                            "УТ:Город" {
+                                "УТ:Название"("МОСКВА")
+                                "УТ:Сокращение"("г")
                             }
-                            element(UT, "Улица") {
-                                element(UT, "Название", "ЛЕСКОВА")
-                                element(UT, "Сокращение", "ул")
+                            "УТ:Улица" {
+                                "УТ:Название"("ЛЕСКОВА")
+                                "УТ:Сокращение"("ул")
                             }
-                            element(UT, "Дом") {
-                                element(UT, "Номер", "2")
+                            "УТ:Дом" {
+                                "УТ:Номер"(2)
                             }
                         }
                     }
                 }
-                element("Реорганизация") {
-                    element("РешениеБанка") {
-                        element(UT, "Дата", "2010-10-10")
-                        element(UT, "Номер", "1010")
+                "Реорганизация" {
+                    "РешениеБанка" {
+                        "УТ:Дата"("2010-10-10")
+                        "УТ:Номер"("1010")
                     }
-                    element("Форма", "1")
-                    element("Результат") {
-                        element("Созданные") {
-                            element("НПФ") {
-                                element("Наименование", "НЕГОСУДАРСТВЕННЫЙ ПЕНСИОННЫЙ ФОНД ПЛЕС")
-                                element("ИНН", "7881020165")
-                                element("ОГРН", "1033628801099")
-                                element("Адрес") {
-                                    element(UT, "Индекс", "127001")
-                                    element(UT, "РоссийскийАдрес") {
-                                        element(UT, "Город") {
-                                            element(UT, "Название", "МОСКВА")
-                                            element(UT, "Сокращение", "г")
+                    "Форма"(1)
+                    "Результат" {
+                        "Созданные" {
+                            "НПФ" {
+                                "Наименование"("НЕГОСУДАРСТВЕННЫЙ ПЕНСИОННЫЙ ФОНД ПЛЕС")
+                                "ИНН"("7881020165")
+                                "ОГРН"("1033628801099")
+                                "Адрес" {
+                                    "УТ:Индекс"("127001")
+                                    "УТ:РоссийскийАдрес" {
+                                        "УТ:Город" {
+                                            "УТ:Название"("МОСКВА")
+                                            "УТ:Сокращение"("г")
                                         }
-                                        element(UT, "Улица") {
-                                            element(UT, "Название", "ЛЕСКОВА")
-                                            element(UT, "Сокращение", "ул")
+                                        "УТ:Улица" {
+                                            "УТ:Название"("ЛЕСКОВА")
+                                            "УТ:Сокращение"("ул")
                                         }
-                                        element(UT, "Дом") {
-                                            element(UT, "Номер", "2")
+                                        "УТ:Дом" {
+                                            "УТ:Номер"(2)
                                         }
                                     }
                                 }
                             }
                         }
-                        element("ПрекратившиеДеятельность") {
+                        "ПрекратившиеДеятельность" {
                             //1
-                            element("НПФ") {
-                                element("Наименование", "НЕГОСУДАРСТВЕННЫЙ ПЕНСИОННЫЙ ФОНД ВОЛОГДА")
-                                element("ИНН", "7886021717")
-                                element("ОГРН", "1033628802299")
-                                element("Адрес") {
-                                    element(UT, "Индекс", "127001")
-                                    element(UT, "РоссийскийАдрес") {
-                                        element(UT, "Город") {
-                                            element(UT, "Название", "КОСТРОМА")
-                                            element(UT, "Сокращение", "г")
+                            "НПФ" {
+                                "Наименование"("НЕГОСУДАРСТВЕННЫЙ ПЕНСИОННЫЙ ФОНД ВОЛОГДА")
+                                "ИНН"("7886021717")
+                                "ОГРН"("1033628802299")
+                                "Адрес" {
+                                    "УТ:Индекс"(127001)
+                                    "УТ:РоссийскийАдрес"{
+                                        "УТ:Город"{
+                                            "УТ:Название"("КОСТРОМА")
+                                            "УТ:Сокращение"("г")
                                         }
-                                        element(UT, "Улица") {
-                                            element(UT, "Название", "ЛЕНИНА")
-                                            element(UT, "Сокращение", "ул")
+                                        "УТ:Улица" {
+                                            "УТ:Название"("ЛЕНИНА")
+                                            "УТ:Сокращение"("ул")
                                         }
-                                        element(UT, "Дом") {
-                                            element(UT, "Номер", "2")
+                                        "УТ:Дом"{
+                                            "УТ:Номер"(2)
                                         }
                                     }
                                 }
                             }
                             //2
-                            element("НПФ") {
-                                element("Наименование", "НЕГОСУДАРСТВЕННЫЙ ПЕНСИОННЫЙ ФОНД СУЗДАЛЬ")
-                                element("ИНН", "7884038318")
-                                element("ОГРН", "1033628803399")
-                                element("Адрес") {
-                                    element(UT, "Индекс", "")
-                                    element(UT, "РоссийскийАдрес") {
-                                        element(UT, "Город") {
-                                            element(UT, "Название", "РОСТОВ")
-                                            element(UT, "Сокращение", "г")
+                            "НПФ" {
+                                "Наименование"("НЕГОСУДАРСТВЕННЫЙ ПЕНСИОННЫЙ ФОНД СУЗДАЛЬ")
+                                "ИНН"("7884038318")
+                                "ОГРН"("1033628803399")
+                                "Адрес" {
+                                    "УТ:Индекс"("")
+                                    "УТ:РоссийскийАдрес" {
+                                        "УТ:Город"{
+                                            "УТ:Название"("РОСТОВ")
+                                            "УТ:Сокращение"("г")
                                         }
-                                        element(UT, "Улица") {
-                                            element(UT, "Название", "ФРУНЗЕ")
-                                            element(UT, "Сокращение", "ул")
+                                        "УТ:Улица"{
+                                            "УТ:Название"("ФРУНЗЕ")
+                                            "УТ:Сокращение"("ул")
                                         }
-                                        element(UT, "Дом") {
-                                            element(UT, "Номер", "2")
+                                        "УТ:Дом"{
+                                            "УТ:Номер"(2)
                                         }
                                     }
                                 }
                             }
                             //3
-                            element("НПФ") {
-                                element("Наименование", "НЕГОСУДАРСТВЕННЫЙ ПЕНСИОННЫЙ ФОНД КОЛОМНА")
-                                element("ИНН", "7880032954")
-                                element("ОГРН", "1033628803399")
-                                element("Адрес") {
-                                    element(UT, "Индекс", "")
-                                    //writeEmptyElement(UT, "Индекс")
-                                    element(UT, "РоссийскийАдрес") {
-                                        element(UT, "Город") {
-                                            element(UT, "Название", "РОСТОВ")
-                                            element(UT, "Сокращение", "г")
+                            "НПФ" {
+                                "Наименование"("НЕГОСУДАРСТВЕННЫЙ ПЕНСИОННЫЙ ФОНД КОЛОМНА")
+                                "ИНН"("7880032954")
+                                "ОГРН"("1033628803399")
+                                "Адрес" {
+                                    "УТ:Индекс"("")
+                                    "УТ:РоссийскийАдрес"{
+                                        "УТ:Город"{
+                                            "УТ:Название"("РОСТОВ")
+                                            "УТ:Сокращение"("г")
                                         }
-                                        element(UT, "Улица") {
-                                            element(UT, "Название", "ФРУНЗЕ")
-                                            element(UT, "Сокращение", "ул")
+                                        "УТ:Улица" {
+                                            "УТ:Название"("ФРУНЗЕ")
+                                            "УТ:Сокращение"("ул")
                                         }
-                                        element(UT, "Дом") {
-                                            element(UT, "Номер", "22")
+                                        "УТ:Дом" {
+                                            "УТ:Номер"(22)
                                         }
                                     }
                                 }
@@ -165,101 +175,95 @@ private fun serialize04(writer: DslXMLStreamWriter) {
                     }
                 }
                 var totalZlCount: Long = 0
-                element("СписокСведений") {
-                    element("РеорганизованныйНПФ") {
+                "СписокСведений" {
+                    "РеорганизованныйНПФ" {
                         var zlCount: Long = 0
-                        for (i in 1..9) {
-                            println("Write $i")
-                            element("Запись") {
-                                element("НомерПП", i.toString())
-                                element("НПФ") {
-                                    element("Наименование", "НЕГОСУДАРСТВЕННЫЙ ПЕНСИОННЫЙ ФОНД ПЛЕС")
-                                    element("ОГРН", "1033628801099")
-                                    element("Лицензия") {
-                                        element(UT, "Дата", "2010-08-08")
-                                        element(UT, "Номер", "2308")
+                        for (i in 1..5_000/*_000*/) {
+                            if (i % 10000 == 0) {
+                                println("Write $i")
+                            }
+                            "Запись" {
+                                "НомерПП"(i.toString())
+                                "НПФ" {
+                                    "Наименование"("НЕГОСУДАРСТВЕННЫЙ ПЕНСИОННЫЙ ФОНД ПЛЕС")
+                                    "ОГРН"("1033628801099")
+                                    "Лицензия" {
+                                        "УТ:Дата"("2010-08-08")
+                                        "УТ:Номер"("2308")
                                     }
                                 }
-                                element("ЗЛ") {
-                                    element(UT, "ФИО") {
-                                        element(UT, "Фамилия", "ГОЛЬФ")
-                                        element(UT, "Имя", "ЕКАТЕРИНА")
-                                        element(UT, "Отчество", "АЛЬФРЕДОВНА")
+                                "ЗЛ" {
+                                    "УТ:ФИО" {
+                                        "УТ:Фамилия"("ГОЛЬФ")
+                                        "УТ:Имя"("ЕКАТЕРИНА")
+                                        "УТ:Отчество"("АЛЬФРЕДОВНА")
                                     }
-                                    element(UT, "ДатаРождения", "1974-05-07")
-                                    element(UT, "Пол", "Ж")
+                                    "УТ:ДатаРождения"("1974-05-07")
+                                    "УТ:Пол"("Ж")
                                     val s: Long = 81_000_000L + i - 1
                                     zlCount++
-                                    element(UT, "СтраховойНомер", InsuredPersonUtils.format(s) + " " + getControlNumber(s))
+                                    "УТ:СтраховойНомер"(InsuredPersonUtils.formattedNumber(s))
                                 }
-                                element("СПН") {
-                                    element(NPF, "Сумма", "200222")
-                                    element(NPF, "ИД", "1500")
+                                "СПН" {
+                                    "НПФ:Сумма"(200222)
+                                    "НПФ:ИД"(1500)
                                 }
-                                element("Выплаты", "250000")
+                                "Выплаты"(250000)
                             }
                         }
                         totalZlCount += zlCount
-                        element("КоличествоЗЛ", zlCount.toString())
+                        "КоличествоЗЛ"(zlCount.toString())
                     }
                 }
-                element("КоличествоЗЛ", totalZlCount.toString())
-                element("ЕиоНПФ") {
-                    element(UT, "ФИО") {
-                        element(UT, "Фамилия", "Сидоров")
-                        element(UT, "Имя", "Николай")
-                        element(UT, "Отчество", "Владимирович")
+                "КоличествоЗЛ"(totalZlCount.toString())
+                "ЕиоНПФ" {
+                    "УТ:ФИО" {
+                        "УТ:Фамилия"("Сидоров")
+                        "УТ:Имя"("Николай")
+                        "УТ:Отчество"("Владимирович")
                     }
-                    element(UT, "Должность", "Генеральный директор")
+                    "УТ:Должность"("Генеральный директор")
                 }
             }
-            element("СлужебнаяИнформация") {
-                //TODO: generate
-                element(AF, "GUID", guid)
-                element(AF, "ДатаВремя", "2017-08-09T12:00:00-05:00")
-                element(NPF, "Составитель") {
-                    element(UT, "НалоговыйНомер") {
-                        element(UT, "ИНН", "7881020165")
-                        element(UT, "КПП", "770201001")
+            "СлужебнаяИнформация" {
+                "АФ:GUID"(guid)
+                "АФ:ДатаВремя"("2017-08-09T12:00:00-05:00")
+                "НПФ:Составитель" {
+                    "УТ:НалоговыйНомер" {
+                        "УТ:ИНН"("7881020165")
+                        "УТ:КПП"("770201001")
                     }
-                    element(UT, "КодЕГРИП", "0")
-                    element(UT, "Форма", "normalizedString")
-                    element(UT, "НаименованиеОрганизации", "НЕГОСУДАРСТВЕННЫЙ ПЕНСИОННЫЙ ФОНД ПЛЕС")
-                    element(UT, "НаименованиеКраткое", "НПФ_ПЛЕС")
-                    element(UT, "РегистрационныйНомер", "000-000-000000")
-                    element(UT, "Адрес") {
-                        element(UT, "Индекс", "127001")
-                        element(UT, "РоссийскийАдрес") {
-                            element(UT, "Город") {
-                                element(UT, "Название", "МОСКВА")
-                                element(UT, "Сокращение", "г")
+                    "УТ:КодЕГРИП"("0")
+                    "УТ:Форма"("normalizedString")
+                    "УТ:НаименованиеОрганизации"("НЕГОСУДАРСТВЕННЫЙ ПЕНСИОННЫЙ ФОНД ПЛЕС")
+                    "УТ:НаименованиеКраткое"("НПФ_ПЛЕС")
+                    "УТ:РегистрационныйНомер"("000-000-000000")
+                    "УТ:Адрес" {
+                        "УТ:Индекс"("127001")
+                        "УТ:РоссийскийАдрес" {
+                            "УТ:Город" {
+                                "УТ:Название"("МОСКВА")
+                                "УТ:Сокращение"("г")
                             }
-                            element(UT, "Улица") {
-                                element(UT, "Название", "ЛЕСКОВА")
-                                element(UT, "Сокращение", "ул")
+                            "УТ:Улица" {
+                                "УТ:Название"("ЛЕСКОВА")
+                                "УТ:Сокращение"("ул")
                             }
-                            element(UT, "Дом") {
-                                element(UT, "Номер", "2")
+                            "УТ:Дом" {
+                                "УТ:Номер"(2)
                             }
                         }
                     }
-                    element(UT, "Подразделение") {
-                        element(UT, "НаименованиеПодразделения", "НОВОЕ")
-                        element(UT, "НомерПодразделения", "111")
+                    "УТ:Подразделение" {
+                        "УТ:НаименованиеПодразделения"("НОВОЕ")
+                        "УТ:НомерПодразделения"(111)
                     }
                 }
-                element(NPF, "НомерДокументаОрганизации", "333")
-                element(NPF, "ЗаГод", "2017")
-                element(NPF, "ТипПериода", "String")
-                element(NPF, "НомерПериода", "0")
+                "НПФ:НомерДокументаОрганизации"(333)
+                "НПФ:ЗаГод"(2017)
+                "НПФ:ТипПериода"("String")
+                "НПФ:НомерПериода"(0)
             }
         }
     }
-}
-
-fun getControlNumber(s: Long): String {
-    if (s <= 82_000_000L) return "71"
-    if (s <= 85_000_000L) return "79"
-    if (s < 90_000_000L) return "00"
-    return "00"
 }
