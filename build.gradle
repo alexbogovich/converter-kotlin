@@ -16,6 +16,7 @@ version '0.1-SNAPSHOT'
 subprojects {
     repositories {
         jcenter()
+        maven { url "https://jitpack.io" }
     }
     apply plugin: "kotlin"
 

@@ -1,8 +1,10 @@
 apply plugin: 'application'
+
 mainClassName = 'com.bogovich'
 
 dependencies {
     compile project(':utils')
     compile project(':xml-writer-dsl')
     compile 'com.monitorjbl:xlsx-streamer:1.2.1'
+    compile 'com.github.kgilmer:kotlinx-cli:bdb0c81'
 }
