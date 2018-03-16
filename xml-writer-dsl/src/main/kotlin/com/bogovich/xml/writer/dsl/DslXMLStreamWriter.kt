@@ -2,12 +2,16 @@ package com.bogovich.xml.writer.dsl
 
 import com.sun.xml.txw2.output.IndentingXMLStreamWriter
 import mu.KLogging
+import java.io.OutputStream
+import java.io.Writer
+import javax.xml.stream.XMLOutputFactory
 import javax.xml.stream.XMLStreamWriter
-
 
 
 class DslXMLStreamWriter(writer: XMLStreamWriter?) : IndentingXMLStreamWriter(writer) {
     companion object : KLogging()
+    constructor(writer: Writer) : this(XMLOutputFactory.newFactory().createXMLStreamWriter(writer))
+    constructor(stream: OutputStream) : this(XMLOutputFactory.newFactory().createXMLStreamWriter(stream, "UTF-8"))
 
     private val namespaceMapping = HashMap<String, String>()
 

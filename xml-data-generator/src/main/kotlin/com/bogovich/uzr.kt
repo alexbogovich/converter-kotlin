@@ -12,20 +12,18 @@ import java.io.OutputStreamWriter
 import java.time.LocalDate
 import java.util.*
 import java.util.zip.GZIPOutputStream
-import javax.xml.stream.XMLOutputFactory
 import kotlin.system.measureTimeMillis
 
 val guid = UUID.randomUUID().toString()
 val localDate = LocalDate.now().toString()
 
 fun main(args: Array<String>) {
-//    val out = System.out
-//    val writer = DslXMLStreamWriter(XMLOutputFactory.newFactory().createXMLStreamWriter(out, "UTF-8"))
+//    val writer = DslXMLStreamWriter(System.out)
 //    serialize04(writer)
     val file = File("h:\\ПФР_777000_УЗР_${localDate}_$guid.xml.gz")
     val fileOutputStream = BufferedWriter(OutputStreamWriter(GZIPOutputStream(FileOutputStream(file)), "UTF-8"))
     fileOutputStream.use {
-        val writer = DslXMLStreamWriter(XMLOutputFactory.newFactory().createXMLStreamWriter(it))
+        val writer = DslXMLStreamWriter(it)
         measureTimeMillis {
             serialize04(writer)
         }.let {
