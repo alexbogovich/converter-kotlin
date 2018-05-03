@@ -33,6 +33,18 @@ class DslXMLStreamWriter(writer: XMLStreamWriter?) : IndentingXMLStreamWriter(wr
         return this
     }
 
+    private fun emptyElement(name: String, init: xmlStreamLambda): DslXMLStreamWriter {
+        this.writeEmptyElement(name)
+        this.init()
+        return this
+    }
+
+    private fun emptyElement(namespace: String, tagName: String, init: xmlStreamLambda): DslXMLStreamWriter {
+        this.writeEmptyElement(namespace, tagName)
+        this.init()
+        return this
+    }
+
     fun defaultNamespace(namespace: String): DslXMLStreamWriter {
         this.writeDefaultNamespace(namespace)
         return this
@@ -74,7 +86,7 @@ class DslXMLStreamWriter(writer: XMLStreamWriter?) : IndentingXMLStreamWriter(wr
     infix operator fun String.invoke(lambda: xmlStreamLambda) {
         if (this.contains(":")) {
             val tag = this.split(":")
-            if (!namespaceMapping.contains(tag[0])) {
+            if (!namespaceMapping.isEmpty() && !namespaceMapping.contains(tag[0])) {
                 throw RuntimeException("Prefix ${tag[0]} not in $namespaceMapping")
             }
             element(namespaceMapping[tag[0]]!!, tag[1], lambda)
@@ -97,5 +109,17 @@ class DslXMLStreamWriter(writer: XMLStreamWriter?) : IndentingXMLStreamWriter(wr
 
     infix fun String.attr(value: Any) {
         attribute(this, value)
+    }
+
+    infix fun String.emptyElement(lambda: xmlStreamLambda) {
+        if (this.contains(":")) {
+            val tag = this.split(":")
+            if (!namespaceMapping.isEmpty() && !namespaceMapping.contains(tag[0])) {
+                throw RuntimeException("Prefix ${tag[0]} not in $namespaceMapping")
+            }
+            emptyElement(namespaceMapping[tag[0]]!!, tag[1], lambda)
+        } else {
+            emptyElement(this,lambda)
+        }
     }
 }

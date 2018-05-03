@@ -117,6 +117,24 @@ class Converter {
         }
     }
 
+    suspend fun streamWithountMeta(startCondition: (rowData: RowData) -> Boolean,
+                       endCondition: (rowData: RowData) -> Boolean,
+                       process: suspend RowData.() -> Unit) {
+        if (state == ReadState.META) {
+            while (!startCondition(readRowData())) {
+                saveToMeta(rowData)
+            }
+            state = ReadState.STREAM
+            if (startCondition(rowData) && !endCondition(rowData)) {
+                do {
+                    process(rowData)
+                    readRowData()
+                } while (startCondition(rowData) && !endCondition(rowData))
+            }
+            state = ReadState.META
+        }
+    }
+
     enum class ReadState {
         META,
         STREAM

@@ -1,7 +1,7 @@
 package com.bogovich.utils
 
-import com.sun.org.apache.xerces.internal.dom.DOMInputImpl
 import mu.KotlinLogging
+import org.apache.xerces.dom.DOMInputImpl
 import org.w3c.dom.ls.LSResourceResolver
 import org.xml.sax.ErrorHandler
 import org.xml.sax.SAXParseException

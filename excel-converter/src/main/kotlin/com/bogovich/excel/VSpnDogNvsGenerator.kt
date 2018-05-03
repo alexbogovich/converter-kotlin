@@ -40,7 +40,7 @@ fun main(args: Array<String>) = runBlocking {
 //    val out = System.out
 //    converter.writer = CoroutineXMLStreamWriter(XMLOutputFactory.newFactory().createXMLStreamWriter(out, "UTF-8"))
 
-    converter.writer = CoroutineXMLStreamWriter(XMLOutputFactory.newFactory().createXMLStreamWriter(fileWriter))
+    converter.writer = CoroutineXMLStreamWriter(XMLOutputFactory.newInstance().createXMLStreamWriter(fileWriter))
 
     try {
         map(converter)

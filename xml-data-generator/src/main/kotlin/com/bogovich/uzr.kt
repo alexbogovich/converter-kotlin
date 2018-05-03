@@ -26,7 +26,7 @@ fun main(args: Array<String>) {
     val file = File("h:\\ПФР_777000_УЗР_${localDate}_$guid.xml.gz")
     val fileOutputStream = BufferedWriter(OutputStreamWriter(GZIPOutputStream(FileOutputStream(file)), "UTF-8"))
     fileOutputStream.use {
-        val writer = DslXMLStreamWriter(XMLOutputFactory.newFactory().createXMLStreamWriter(it))
+        val writer = DslXMLStreamWriter(XMLOutputFactory.newInstance().createXMLStreamWriter(it))
         measureTimeMillis {
             serialize04(writer)
         }.let {

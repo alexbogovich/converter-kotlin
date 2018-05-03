@@ -33,10 +33,10 @@ class Reader(private val mainFileChannel: Channel<RowData>, val restFileChannel:
                         .filter { cell: Cell -> !cell.stringCellValue.isNullOrEmpty() }
                         .associateBy { cell: Cell -> CellUtils.getCellRef(cell.columnIndex) }
                         .also { cells ->
-                            logger.info { "prepare to send row ${row.rowNum}" }
-                            logger.info { "Send $cells" }
+                            logger.debug { "prepare to send row ${row.rowNum}" }
+                            logger.debug { "Send $cells" }
                             channel.send(RowData(sheetNum + 1, row.rowNum, cells))
-                            logger.info { "Sent ${row.rowNum}" }
+                            logger.debug { "Sent ${row.rowNum}" }
                         }
             }
         }
