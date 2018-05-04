@@ -6,7 +6,7 @@ import javax.xml.stream.XMLStreamWriter
 
 
 
-class DslXMLStreamWriter(writer: XMLStreamWriter?) : IndentingXMLStreamWriter(writer) {
+class DslXMLStreamWriter(writer: XMLStreamWriter?) : IndentingXMLStreamWriter(writer), EmptyElementDsl {
     companion object : KLogging()
 
     private val namespaceMapping = HashMap<String, String>()
@@ -33,7 +33,7 @@ class DslXMLStreamWriter(writer: XMLStreamWriter?) : IndentingXMLStreamWriter(wr
         return this
     }
 
-    private fun emptyElement(name: String, init: xmlStreamLambda): DslXMLStreamWriter {
+    private fun emptyElement(name: String, init: EmptyElementDsl.() -> Unit): DslXMLStreamWriter {
         this.writeEmptyElement(name)
         this.init()
         return this
@@ -68,7 +68,9 @@ class DslXMLStreamWriter(writer: XMLStreamWriter?) : IndentingXMLStreamWriter(wr
         }
     }
 
-    fun attribute(name: String, value: Any) = writeAttribute(name, value.toString())
+    private fun attribute(name: String, value: Any) = writeAttribute(name, value.toString())
+
+    private fun attribute(namespace: String, name: String, value: Any) = writeAttribute(namespace, name, value.toString())
 
     infix fun String.tag(value: Any) {
         element(this, value)
@@ -107,11 +109,16 @@ class DslXMLStreamWriter(writer: XMLStreamWriter?) : IndentingXMLStreamWriter(wr
         element(this.first, this.second, lambda)
     }
 
-    infix fun String.attr(value: Any) {
-        attribute(this, value)
+    override infix fun String.attr(value: Any) {
+        if (this.contains(":")) {
+            val tag = this.split(":")
+            attribute(namespaceMapping[tag[0]]!!, tag[1], value)
+        } else {
+            attribute(this, value)
+        }
     }
 
-    infix fun String.emptyElement(lambda: xmlStreamLambda) {
+    infix fun String.emptyElement(lambda: EmptyElementDsl.() -> Unit) {
         if (this.contains(":")) {
             val tag = this.split(":")
             if (!namespaceMapping.isEmpty() && !namespaceMapping.contains(tag[0])) {

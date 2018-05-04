@@ -5,7 +5,6 @@ import com.bogovich.xml.writer.dsl.DslXMLStreamWriter
 import com.google.gson.GsonBuilder
 import com.google.gson.reflect.TypeToken
 import java.io.FileReader
-import java.io.FileWriter
 import javax.xml.stream.XMLOutputFactory
 
 
