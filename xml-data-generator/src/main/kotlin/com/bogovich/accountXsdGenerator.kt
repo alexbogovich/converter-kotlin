@@ -8,6 +8,38 @@ import java.io.FileReader
 import javax.xml.stream.XMLOutputFactory
 
 
+enum class ArcRole(val url: String) {
+    DOMAIN_MEMBER("http://xbrl.org/int/dim/arcrole/domain-member")
+}
+
+fun DslXMLStreamWriter.location(href: String, label: String) {
+    "link:location" emptyElement {
+        "xlink:type" attr "locator"
+        "xlink:href" attr href
+        "xlink:label" attr label
+    }
+}
+
+fun DslXMLStreamWriter.definitionArc(arcrole: ArcRole, from: String, to: String, order: String = "", targetRole: String = "") {
+    "link:definitionArc" emptyElement {
+        "xlink:type" attr "arc"
+        "xlink:arcrole" attr arcrole.url
+        "xlink:from" attr from
+        "xlink:to" attr to
+        if (!order.isEmpty()) "order" attr order
+        if (!targetRole.isEmpty()) "xbrldt:targetRole" attr targetRole
+    }
+}
+
+fun DslXMLStreamWriter.definitionLink(role: String, id: String, lambda: DslXMLStreamWriter.() -> Unit) {
+    "link:definitionLink" {
+        "xlink:type" attr "extended"
+        "xlink:role" attr role
+        "id" attr id
+        this.lambda()
+    }
+}
+
 fun main(args: Array<String>) {
     getAccountsXsdElements()
 }
@@ -34,89 +66,23 @@ fun getAccountsXsdElements() {
             namespace("xbrli", "http://www.xbrl.org/2003/instance")
             namespace("xlink", "http://www.w3.org/1999/xlink")
 
+            definitionLink(role = "http://www.cbr-prototype.com/xbrl/fin/list/account/balanceAccounts",
+                    id = "balanceAccounts") {
+                location(href = "account.xsd#account-list_BalanceAccountDomain", label = "BalanceAccountDomain")
+                location(href = "account.xsd#account-list_ActiveBalanceAccountDomain", label = "ActiveBalanceAccountDomain")
+                location(href = "account.xsd#account-list_PassiveBalanceAccountDomain", label = "PassiveBalanceAccountDomain")
 
-            "link:definitionLink" {
-                "xlink:type" attr "extended"
-                "xlink:role" attr "http://www.cbr-prototype.com/xbrl/fin/list/account/balanceAccounts"
-                "id" attr "balanceAccounts"
-                "link:loc" emptyElement {
-                    "xlink:type" attr "locator"
-                    "xlink:href" attr "account.xsd#account-list_BalanceAccountDomain"
-                    "xlink:label" attr "BalanceAccountDomain"
-                }
-
-                "link:loc" emptyElement {
-                    "xlink:type" attr "locator"
-                    "xlink:href" attr "account.xsd#account-list_ActiveBalanceAccountDomain"
-                    "xlink:label" attr "ActiveBalanceAccountDomain"
-                }
-                "link:loc" emptyElement  {
-                    "xlink:type" attr "locator"
-                    "xlink:href" attr "account.xsd#account-list_PassiveBalanceAccountDomain"
-                    "xlink:label" attr "PassiveBalanceAccountDomain"
-                }
-
-                "link:definitionArc" emptyElement {
-                    "xlink:type" attr "arc"
-                    "xbrldt:targetRole" attr "http://www.cbr-prototype.com/xbrl/fin/list/account/activeBalanceAccounts"
-                    "xlink:arcrole" attr "http://xbrl.org/int/dim/arcrole/domain-member"
-                    "xlink:from" attr "BalanceAccountDomain"
-                    "xlink:to" attr "ActiveBalanceAccountDomain"
-                    "order" attr "1.0"
-                }
-
-                "link:definitionArc" emptyElement {
-                    "xlink:type" attr "arc"
-                    "xbrldt:targetRole" attr "http://www.cbr-prototype.com/xbrl/fin/list/account/passiveBalanceAccounts"
-                    "xlink:arcrole" attr "http://xbrl.org/int/dim/arcrole/domain-member"
-                    "xlink:from" attr "BalanceAccountDomain"
-                    "xlink:to" attr "PassiveBalanceAccountDomain"
-                    "order" attr "2.0"
-                }
+                definitionArc(arcrole = ArcRole.DOMAIN_MEMBER,
+                        from = "BalanceAccountDomain",
+                        to = "ActiveBalanceAccountDomain",
+                        order = "1.0",
+                        targetRole = "http://www.cbr-prototype.com/xbrl/fin/list/account/activeBalanceAccounts")
+                definitionArc(arcrole = ArcRole.DOMAIN_MEMBER,
+                        from = "BalanceAccountDomain",
+                        to = "PassiveBalanceAccountDomain",
+                        order = "2.0",
+                        targetRole = "http://www.cbr-prototype.com/xbrl/fin/list/account/activeBalanceAccounts")
             }
-
-            "link:definitionLink" {
-                "xlink:type" attr "extended"
-                "xlink:role" attr "http://www.cbr-prototype.com/xbrl/fin/list/account/balanceAccounts"
-                "id" attr "balanceAccounts"
-                "link:loc" emptyElement {
-                    "xlink:type" attr "locator"
-                    "xlink:href" attr "account.xsd#account-list_BalanceAccountDomain"
-                    "xlink:label" attr "BalanceAccountDomain"
-                }
-
-                "link:loc" emptyElement {
-                    "xlink:type" attr "locator"
-                    "xlink:href" attr "account.xsd#account-list_ActiveBalanceAccountDomain"
-                    "xlink:label" attr "ActiveBalanceAccountDomain"
-                }
-                "link:loc" emptyElement  {
-                    "xlink:type" attr "locator"
-                    "xlink:href" attr "account.xsd#account-list_PassiveBalanceAccountDomain"
-                    "xlink:label" attr "PassiveBalanceAccountDomain"
-                }
-
-                "link:definitionArc" emptyElement {
-                    "xlink:type" attr "arc"
-                    "xbrldt:targetRole" attr "http://www.cbr-prototype.com/xbrl/fin/list/account/activeBalanceAccounts"
-                    "xlink:arcrole" attr "http://xbrl.org/int/dim/arcrole/domain-member"
-                    "xlink:from" attr "BalanceAccountDomain"
-                    "xlink:to" attr "ActiveBalanceAccountDomain"
-                    "order" attr "1.0"
-                }
-
-                "link:definitionArc" emptyElement {
-                    "xlink:type" attr "arc"
-                    "xbrldt:targetRole" attr "http://www.cbr-prototype.com/xbrl/fin/list/account/passiveBalanceAccounts"
-                    "xlink:arcrole" attr "http://xbrl.org/int/dim/arcrole/domain-member"
-                    "xlink:from" attr "BalanceAccountDomain"
-                    "xlink:to" attr "PassiveBalanceAccountDomain"
-                    "order" attr "2.0"
-                }
-            }
-
-
-
 
             personList.forEach {
                 "xsd:element" {
