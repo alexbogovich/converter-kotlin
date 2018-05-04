@@ -12,15 +12,21 @@ enum class ArcRole(val url: String) {
     DOMAIN_MEMBER("http://xbrl.org/int/dim/arcrole/domain-member")
 }
 
-fun DslXMLStreamWriter.location(href: String, label: String) {
+data class Location(val href: String, val label: String)
+data class DefinitionArc(val arcrole: ArcRole, val from: String, val to: String, val order: String = "", val targetRole: String = "")
+data class DefinitionLink(val role: String, val id: String)
+
+fun DslXMLStreamWriter.location(href: String, label: String): Location {
     "link:location" emptyElement {
         "xlink:type" attr "locator"
         "xlink:href" attr href
         "xlink:label" attr label
     }
+    return Location(href, label)
 }
 
-fun DslXMLStreamWriter.definitionArc(arcrole: ArcRole, from: String, to: String, order: String = "", targetRole: String = "") {
+fun DslXMLStreamWriter.definitionArc(arcrole: ArcRole, from: String, to: String, order: String = "", targetRole:
+String = ""): DefinitionArc {
     "link:definitionArc" emptyElement {
         "xlink:type" attr "arc"
         "xlink:arcrole" attr arcrole.url
@@ -29,15 +35,17 @@ fun DslXMLStreamWriter.definitionArc(arcrole: ArcRole, from: String, to: String,
         if (!order.isEmpty()) "order" attr order
         if (!targetRole.isEmpty()) "xbrldt:targetRole" attr targetRole
     }
+    return DefinitionArc(arcrole, from, to, order, targetRole)
 }
 
-fun DslXMLStreamWriter.definitionLink(role: String, id: String, lambda: DslXMLStreamWriter.() -> Unit) {
+fun DslXMLStreamWriter.definitionLink(role: String, id: String, lambda: DslXMLStreamWriter.() -> Unit): DefinitionLink {
     "link:definitionLink" {
         "xlink:type" attr "extended"
         "xlink:role" attr role
         "id" attr id
         this.lambda()
     }
+    return DefinitionLink(role, id)
 }
 
 fun main(args: Array<String>) {
@@ -68,19 +76,13 @@ fun getAccountsXsdElements() {
 
             definitionLink(role = "http://www.cbr-prototype.com/xbrl/fin/list/account/balanceAccounts",
                     id = "balanceAccounts") {
-                location(href = "account.xsd#account-list_BalanceAccountDomain", label = "BalanceAccountDomain")
-                location(href = "account.xsd#account-list_ActiveBalanceAccountDomain", label = "ActiveBalanceAccountDomain")
-                location(href = "account.xsd#account-list_PassiveBalanceAccountDomain", label = "PassiveBalanceAccountDomain")
+                val balance = location("account.xsd#account-list_BalanceAccountDomain","BalanceAccountDomain")
+                val active = location("account.xsd#account-list_ActiveBalanceAccountDomain","ActiveBalanceAccountDomain")
+                val passive = location("account.xsd#account-list_PassiveBalanceAccountDomain", "PassiveBalanceAccountDomain")
 
-                definitionArc(arcrole = ArcRole.DOMAIN_MEMBER,
-                        from = "BalanceAccountDomain",
-                        to = "ActiveBalanceAccountDomain",
-                        order = "1.0",
+                definitionArc(arcrole = ArcRole.DOMAIN_MEMBER, from = balance.label, to = active.label, order = "1.0",
                         targetRole = "http://www.cbr-prototype.com/xbrl/fin/list/account/activeBalanceAccounts")
-                definitionArc(arcrole = ArcRole.DOMAIN_MEMBER,
-                        from = "BalanceAccountDomain",
-                        to = "PassiveBalanceAccountDomain",
-                        order = "2.0",
+                definitionArc(arcrole = ArcRole.DOMAIN_MEMBER, from = balance.label, to = passive.label, order = "2.0",
                         targetRole = "http://www.cbr-prototype.com/xbrl/fin/list/account/activeBalanceAccounts")
             }
 
