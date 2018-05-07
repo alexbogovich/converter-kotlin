@@ -83,7 +83,7 @@ fun getAccountsXsdElements() {
                 definitionArc(arcrole = ArcRole.DOMAIN_MEMBER, from = balance.label, to = active.label, order = "1.0",
                         targetRole = "http://www.cbr-prototype.com/xbrl/fin/list/account/activeBalanceAccounts")
                 definitionArc(arcrole = ArcRole.DOMAIN_MEMBER, from = balance.label, to = passive.label, order = "2.0",
-                        targetRole = "http://www.cbr-prototype.com/xbrl/fin/list/account/activeBalanceAccounts")
+                        targetRole = "http://www.cbr-prototype.com/xbrl/fin/list/account/passiveBalanceAccounts")
             }
 
             personList.forEach {
