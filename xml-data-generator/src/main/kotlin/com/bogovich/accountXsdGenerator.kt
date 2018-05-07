@@ -240,7 +240,7 @@ fun getAccountsXsdElements() {
                 writeArrayOfAccounts(domain, personList, Account.Group.OFFBALANCE, Account.Type.PASSIVE)
             }
 
-            definitionLink(otherAccountRole, "activeOtherAccounts") {
+            definitionLink(activeOtherAccountRole, "activeOtherAccounts") {
                 val domain = location("account.xsd#account-list_ActiveOtherAccountDomain", "ActiveOtherAccountDomain")
                 writeArrayOfAccounts(domain, personList, Account.Group.OTHER, Account.Type.ACTIVE)
             }
