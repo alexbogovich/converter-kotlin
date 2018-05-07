@@ -1,10 +1,12 @@
 package com.bogovich
 
-import com.bogovich.ArcRole.*
+import com.bogovich.ArcRole.DIMENSION_DOMAIN
+import com.bogovich.ArcRole.DOMAIN_MEMBER
 import com.bogovich.model.Account
 import com.bogovich.xml.writer.dsl.DslXMLStreamWriter
 import com.google.gson.GsonBuilder
 import com.google.gson.reflect.TypeToken
+import java.io.FileOutputStream
 import java.io.FileReader
 import javax.xml.stream.XMLOutputFactory
 
@@ -47,7 +49,7 @@ fun DslXMLStreamWriter.writeAllArcroleRef(): Unit {
 }
 
 fun DslXMLStreamWriter.location(href: String, label: String): Location {
-    "link:location" emptyElement {
+    "link:loc" emptyElement {
         "xlink:type" attr "locator"
         "xlink:href" attr href
         "xlink:label" attr label
@@ -114,9 +116,8 @@ fun getAccountsXsdElements() {
         personList = gson.fromJson(it, object : TypeToken<List<Account>>() {}.type)
     }
 
-//    println(personList)
-
-    val out = System.out
+//    val out = System.out
+    val out = FileOutputStream("C:\\staff\\account-definition.xml")
     val writer = DslXMLStreamWriter(XMLOutputFactory.newInstance().createXMLStreamWriter(out, "UTF-8"))
 
     writer.document {
