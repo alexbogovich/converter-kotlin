@@ -92,6 +92,15 @@ fun DslXMLStreamWriter.roleRef(href: String, roleURI: String): RoleRef {
     return RoleRef(href, roleURI)
 }
 
+fun DslXMLStreamWriter.writeArrayOfAccounts(domain: Location, accounts: List<Account>, group: Account.Group, type: Account.Type) {
+    accounts.asSequence()
+            .filter { it.group == group && it.type == type }
+            .map { location("account.xsd#account-list_Account${it.number}", "Account${it.number}") }
+            .forEachIndexed { index, location ->
+                definitionArc(DOMAIN_MEMBER, domain, location, "${index + 1}.0")
+            }
+}
+
 fun main(args: Array<String>) {
     getAccountsXsdElements()
 }
@@ -202,92 +211,42 @@ fun getAccountsXsdElements() {
 
             definitionLink(activeBalanceAccountRole, "activeBalanceAccounts") {
                 val domain = location("account.xsd#account-list_ActiveBalanceAccountDomain", "ActiveBalanceAccountDomain")
-                personList.asSequence()
-                        .filter { it.group == Account.Group.BALANCE && it.type == Account.Type.ACTIVE }
-                        .map { location("account.xsd#account-list_Account${it.number}", "Account${it.number}") }
-                        .forEachIndexed { index, location ->
-                            definitionArc(DOMAIN_MEMBER, domain, location, "${index + 1}.0")
-                        }
-
+                writeArrayOfAccounts(domain, personList, Account.Group.BALANCE, Account.Type.ACTIVE)
             }
 
             definitionLink(passiveBalanceAccountRole, "passiveBalanceAccounts") {
                 val domain = location("account.xsd#account-list_PassiveBalanceAccountDomain", "PassiveBalanceAccountDomain")
-                personList.asSequence()
-                        .filter { it.group == Account.Group.BALANCE && it.type == Account.Type.PASSIVE }
-                        .map { location("account.xsd#account-list_Account${it.number}", "Account${it.number}") }
-                        .forEachIndexed { index, location ->
-                            definitionArc(DOMAIN_MEMBER, domain, location, "${index + 1}.0")
-                        }
-
+                writeArrayOfAccounts(domain, personList, Account.Group.BALANCE, Account.Type.PASSIVE)
             }
 
             definitionLink(activeTrustAccountRole, "activeTrustAccounts") {
                 val domain = location("account.xsd#account-list_ActiveTrustAccountDomain", "ActiveTrustAccountDomain")
-                personList.asSequence()
-                        .filter { it.group == Account.Group.TRUST && it.type == Account.Type.ACTIVE }
-                        .map { location("account.xsd#account-list_Account${it.number}", "Account${it.number}") }
-                        .forEachIndexed { index, location ->
-                            definitionArc(DOMAIN_MEMBER, domain, location, "${index + 1}.0")
-                        }
-
+                writeArrayOfAccounts(domain, personList, Account.Group.TRUST, Account.Type.ACTIVE)
             }
 
             definitionLink(passiveTrustAccountRole, "passiveTrustAccounts") {
                 val domain = location("account.xsd#account-list_PassiveTrustAccountDomain", "PassiveTrustAccountDomain")
-                personList.asSequence()
-                        .filter { it.group == Account.Group.TRUST && it.type == Account.Type.PASSIVE }
-                        .map { location("account.xsd#account-list_Account${it.number}", "Account${it.number}") }
-                        .forEachIndexed { index, location ->
-                            definitionArc(DOMAIN_MEMBER, domain, location, "${index + 1}.0")
-                        }
-
+                writeArrayOfAccounts(domain, personList, Account.Group.TRUST, Account.Type.PASSIVE)
             }
-
-//            ====
 
             definitionLink(activeOffBalanceAccountRole, "ActiveOffBalanceAccountDomain") {
                 val domain = location("account.xsd#account-list_ActiveOffBalanceAccountDomain", "ActiveOffBalanceAccountDomain")
-                personList.asSequence()
-                        .filter { it.group == Account.Group.OFFBALANCE && it.type == Account.Type.ACTIVE }
-                        .map { location("account.xsd#account-list_Account${it.number}", "Account${it.number}") }
-                        .forEachIndexed { index, location ->
-                            definitionArc(DOMAIN_MEMBER, domain, location, "${index + 1}.0")
-                        }
-
+                writeArrayOfAccounts(domain, personList, Account.Group.OFFBALANCE, Account.Type.ACTIVE)
             }
 
             definitionLink(passiveOffBalanceAccountRole, "passiveOffBalanceAccounts") {
                 val domain = location("account.xsd#account-list_PassiveOffBalanceAccountDomain", "PassiveOffBalanceAccountDomain")
-                personList.asSequence()
-                        .filter { it.group == Account.Group.OFFBALANCE && it.type == Account.Type.PASSIVE }
-                        .map { location("account.xsd#account-list_Account${it.number}", "Account${it.number}") }
-                        .forEachIndexed { index, location ->
-                            definitionArc(DOMAIN_MEMBER, domain, location, "${index + 1}.0")
-                        }
-
+                writeArrayOfAccounts(domain, personList, Account.Group.OFFBALANCE, Account.Type.PASSIVE)
             }
 
             definitionLink(otherAccountRole, "activeOtherAccounts") {
                 val domain = location("account.xsd#account-list_ActiveOtherAccountDomain", "ActiveOtherAccountDomain")
-                personList.asSequence()
-                        .filter { it.group == Account.Group.OTHER && it.type == Account.Type.ACTIVE }
-                        .map { location("account.xsd#account-list_Account${it.number}", "Account${it.number}") }
-                        .forEachIndexed { index, location ->
-                            definitionArc(DOMAIN_MEMBER, domain, location, "${index + 1}.0")
-                        }
-
+                writeArrayOfAccounts(domain, personList, Account.Group.OTHER, Account.Type.ACTIVE)
             }
 
             definitionLink(passiveOtherAccountRole, "passiveOtherAccounts") {
                 val domain = location("account.xsd#account-list_PassiveOtherAccountDomain", "PassiveOtherAccountDomain")
-                personList.asSequence()
-                        .filter { it.group == Account.Group.OTHER && it.type == Account.Type.PASSIVE }
-                        .map { location("account.xsd#account-list_Account${it.number}", "Account${it.number}") }
-                        .forEachIndexed { index, location ->
-                            definitionArc(DOMAIN_MEMBER, domain, location, "${index + 1}.0")
-                        }
-
+                writeArrayOfAccounts(domain, personList, Account.Group.OTHER, Account.Type.PASSIVE)
             }
 
 
