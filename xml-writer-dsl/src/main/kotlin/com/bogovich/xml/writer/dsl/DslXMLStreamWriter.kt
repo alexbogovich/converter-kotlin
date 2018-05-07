@@ -86,7 +86,7 @@ class DslXMLStreamWriter(writer: XMLStreamWriter?) : IndentingXMLStreamWriter(wr
     }
 
     infix operator fun String.invoke(lambda: xmlStreamLambda) {
-        if (this.contains(":")) {
+        if (!namespaceMapping.isEmpty() && this.contains(":")) {
             val tag = this.split(":")
             if (!namespaceMapping.isEmpty() && !namespaceMapping.contains(tag[0])) {
                 throw RuntimeException("Prefix ${tag[0]} not in $namespaceMapping")
