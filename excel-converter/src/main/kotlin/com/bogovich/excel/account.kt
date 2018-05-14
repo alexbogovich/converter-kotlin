@@ -4,11 +4,7 @@ import com.google.gson.GsonBuilder
 import kotlinx.coroutines.experimental.cancelAndJoin
 import kotlinx.coroutines.experimental.launch
 import kotlinx.coroutines.experimental.runBlocking
-import java.io.BufferedWriter
-import java.io.FileOutputStream
 import java.io.FileWriter
-import java.io.OutputStreamWriter
-import java.util.zip.GZIPOutputStream
 
 const val BALANCE_START  = 6
 const val BALANCE_END = 1393
@@ -47,6 +43,8 @@ data class Account(val group: Group, val number: String, val type: Type, val tit
     }
 }
 
+data class AccountSubgroupDescription(val group: Account.Group, val subgroup: String, val description: String)
+
 fun main(args: Array<String>) = runBlocking {
 
     val converter = Converter()
@@ -70,6 +68,7 @@ fun main(args: Array<String>) = runBlocking {
 suspend fun parseAccounts(converter: Converter) {
 
     val accounts: MutableList<Account> = mutableListOf()
+    val descList: MutableList<AccountSubgroupDescription> = mutableListOf()
 
 //    println("===== A ======")
 
@@ -81,6 +80,8 @@ suspend fun parseAccounts(converter: Converter) {
                     number = cell("B"),
                     type = Account.Type.of(cell("D")),
                     title = cell("C")))
+        } else if (cell("A").length == 3 && cell("D").isEmpty()) {
+            descList.add(AccountSubgroupDescription(Account.Group.BALANCE, cell("A"), cell("C")))
         }
     }
 
@@ -95,6 +96,8 @@ suspend fun parseAccounts(converter: Converter) {
                     number = cell("A"),
                     type = Account.Type.of("А"),
                     title = cell("B")))
+        } else if (cell("A").length == 3) {
+            descList.add(AccountSubgroupDescription(Account.Group.TRUST, cell("A"), cell("B")))
         }
     }
 
@@ -108,6 +111,8 @@ suspend fun parseAccounts(converter: Converter) {
                     number = cell("A"),
                     type = Account.Type.of("П"),
                     title = cell("B")))
+        } else if (cell("A").length == 3) {
+            descList.add(AccountSubgroupDescription(Account.Group.TRUST, cell("A"), cell("B")))
         }
     }
 
@@ -122,6 +127,8 @@ suspend fun parseAccounts(converter: Converter) {
                     number = cell("A"),
                     type = Account.Type.of(cell("C")),
                     title = cell("B")))
+        } else if (cell("A").length == 3) {
+            descList.add(AccountSubgroupDescription(Account.Group.OFFBALANCE, cell("A"), cell("B")))
         }
     }
 
@@ -135,11 +142,17 @@ suspend fun parseAccounts(converter: Converter) {
                     number = cell("A"),
                     type = Account.Type.of(cell("C")),
                     title = cell("B")))
+        } else if (cell("A").length == 3) {
+            descList.add(AccountSubgroupDescription(Account.Group.OTHER, cell("A"), cell("B")))
         }
 
         val gson = GsonBuilder().setPrettyPrinting().create()
         FileWriter("C:\\staff\\Accounts.json").use {
             gson.toJson(accounts, it)
+        }
+
+        FileWriter("C:\\staff\\AccountsSubgroupDescription.json").use {
+            gson.toJson(descList, it)
         }
     }
 }
