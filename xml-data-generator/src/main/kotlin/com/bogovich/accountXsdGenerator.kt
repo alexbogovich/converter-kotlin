@@ -1,13 +1,20 @@
 package com.bogovich
 
+import com.bogovich.NamespaceEnum.*
+import com.bogovich.XbrlPeriodAttr.*
+import com.bogovich.XbrlPeriodType.*
+import com.bogovich.XbrlSubstitutionGroup.*
 import com.bogovich.model.Account
 import com.bogovich.xml.writer.dsl.DslXMLStreamWriter
+import com.bogovich.xml.writer.dsl.EmptyElementDsl
 import com.bogovich.xml.writer.dsl.model.*
 import com.bogovich.xml.writer.dsl.model.ArcRole.*
 import com.google.gson.GsonBuilder
 import com.google.gson.reflect.TypeToken
 import java.io.FileOutputStream
 import java.io.FileReader
+import java.nio.file.Path
+import java.nio.file.Paths
 import javax.xml.stream.XMLOutputFactory
 
 fun DslXMLStreamWriter.arcroleRef(arcroleURI: String, href: String): Unit {
@@ -77,11 +84,130 @@ fun DslXMLStreamWriter.writeArrayOfAccounts(domain: Location, accounts: List<Acc
             }
 }
 
-fun main(args: Array<String>) {
-    getAccountsXsdElements()
+fun DslXMLStreamWriter.namespace(ns: NamespaceEnum) = this.namespace(ns.prefix, ns.link)
+
+fun DslXMLStreamWriter.defaultNamespace(ns: NamespaceEnum) = this.defaultNamespace(ns.link)
+
+fun DslXMLStreamWriter.targetNamespace(ns: NamespaceEnum) = this.targetNamespace(ns.link)
+
+fun DslXMLStreamWriter.targetNamespace(ns: String)  {
+    this.writeAttribute("targetNamespace", ns)
+    this.schemaNamespace = ns
 }
 
-fun getAccountsXsdElements() {
+fun DslXMLStreamWriter.import(ns: NamespaceEnum){
+    "import" emptyElement {
+        "namespace" attr ns.link
+        if (ns.location.isNotEmpty()) {
+            "schemaLocation" attr ns.location
+        }
+    }
+}
+
+fun DslXMLStreamWriter.import(nsList: List<NamespaceEnum>) {
+    nsList.forEach {
+        import(it)
+    }
+}
+
+fun DslXMLStreamWriter.namespace(nsList: List<NamespaceEnum>) {
+    nsList.forEach {
+        this.namespace(it.prefix, it.link)
+    }
+}
+
+fun main(args: Array<String>) {
+    println("abc")
+//    generateAccountXsd()
+//    generateDefinitionForAccountXsd()
+}
+
+
+fun DslXMLStreamWriter.xsdElement(name: String, lambda: EmptyElementDsl.() -> Unit): XsdElement {
+    return this.xsdElement(name, name, lambda)
+}
+
+fun DslXMLStreamWriter.xsdElement(id: String, name: String, lambda: EmptyElementDsl.() -> Unit): XsdElement {
+    "element" emptyElement {
+        this.lambda()
+    }
+    return XsdElement(id, name, path, schemaNamespace)
+}
+
+enum class XbrlPeriodAttr(val value: String) {
+    INSTANT("instant"),
+    DURATION("duration")
+}
+
+enum class XbrlPeriodType(val value: String) {
+    DOMAIN_ITEM_TYPE("nonnum:domainItemType"),
+}
+
+fun EmptyElementDsl.periodType(period: XbrlPeriodAttr) {
+    "xbrli:periodType" attr period.value
+}
+
+fun EmptyElementDsl.type(type: XbrlPeriodType) {
+    this.type(type.value)
+}
+
+fun EmptyElementDsl.type(type: String) {
+    "xbrli:periodType" attr type
+}
+
+fun EmptyElementDsl.substitutionGroup(type: XbrlSubstitutionGroup) {
+    this.substitutionGroup(type.value)
+}
+
+fun EmptyElementDsl.substitutionGroup(type: String) {
+    "substitutionGroup" attr type
+}
+
+fun EmptyElementDsl.isNillable() {
+    "nillable" attr "true"
+}
+
+fun EmptyElementDsl.isAbstract() {
+    "abstract" attr "true"
+}
+
+
+fun generateAccountXsd() {
+    val accountXsdPath: Path = Paths.get("C:/staff/accountV2.xsd")
+    println("create ${accountXsdPath.toAbsolutePath()}")
+    if (!accountXsdPath.toFile().exists()) {
+        accountXsdPath.toFile().createNewFile()
+    }
+    val accountXsdWriter = DslXMLStreamWriter(accountXsdPath)
+
+    accountXsdWriter.document {
+        "schema" {
+            println("start schema")
+            namespace(listOf(XSI, XLINK, LINK, XBRLI, MODEL, NONNUM))
+            defaultNamespace(XSD)
+            targetNamespace(XSD)
+            import(listOf(XBRLI, MODEL, NONNUM))
+
+            val incomingBalance = xsdElement("IncomingBalance") {
+                periodType(INSTANT); type(DOMAIN_ITEM_TYPE); substitutionGroup(ITEM); isNillable(); isAbstract()
+            }
+
+            val outgoingBalance = xsdElement("OutgoingBalance") {
+                periodType(INSTANT); type(DOMAIN_ITEM_TYPE); substitutionGroup(ITEM); isNillable(); isAbstract()
+            }
+
+            val revenueDebit = xsdElement("RevenueDebit") {
+                periodType(INSTANT); type(DOMAIN_ITEM_TYPE); substitutionGroup(ITEM); isNillable(); isAbstract()
+            }
+
+            val revenueCredit = xsdElement("RevenueCredit") {
+                periodType(INSTANT); type(DOMAIN_ITEM_TYPE); substitutionGroup(ITEM); isNillable(); isAbstract()
+            }
+        }
+    }
+}
+
+fun generateDefinitionForAccountXsd() {
 
     val gson = GsonBuilder().setPrettyPrinting().create()
     var personList: List<Account> = listOf()

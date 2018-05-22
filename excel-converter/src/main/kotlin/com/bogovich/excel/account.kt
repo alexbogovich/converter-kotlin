@@ -17,6 +17,7 @@ const val UNBALANCE_END = 1539
 const val OTHER_START  = 1552
 const val OTHER_END = 1706
 
+const val ACCOUNT_START = 5
 
 
 
@@ -39,7 +40,18 @@ data class Account(val group: Group, val number: String, val type: Type, val tit
         BALANCE,
         TRUST,
         OFFBALANCE,
-        OTHER
+        OTHER;
+        companion object {
+            fun of(shortName: String): Type {
+
+
+
+                if (shortName.toLowerCase() == "п") return Type.PASSIVE
+//            check cyrillic and english
+                if (shortName.toLowerCase() == "a" || shortName.toLowerCase() == "а") return Type.ACTIVE
+                return Type.UNKNOWN
+            }
+        }
     }
 }
 
@@ -73,78 +85,85 @@ suspend fun parseAccounts(converter: Converter) {
 //    println("===== A ======")
 
     converter.streamWithountMeta(
-            { row -> row.rowNum >= BALANCE_START && row.sheetNum == 1 },
-            { row -> row.rowNum >= BALANCE_END && row.sheetNum == 1 }) {
-        if (cell("A").isEmpty() && !cell("B").isEmpty()) {
-            accounts.add(Account(group = Account.Group.BALANCE,
-                    number = cell("B"),
-                    type = Account.Type.of(cell("D")),
-                    title = cell("C")))
-        } else if (cell("A").length == 3 && cell("D").isEmpty()) {
-            descList.add(AccountSubgroupDescription(Account.Group.BALANCE, cell("A"), cell("C")))
-        }
+            {row -> row.rowNum >= ACCOUNT_START },
+            {row -> !row.cell("D").isEmpty() }
+            ) {
+
     }
 
-
-//    println("===== Б active ======")
-
-    converter.streamWithountMeta(
-            { row -> row.rowNum >= TRUST_ACTIVE_START && row.sheetNum == 1 },
-            { row -> row.rowNum >= TRUST_ACTIVE_END && row.sheetNum == 1 }) {
-        if (!cell("A").isEmpty() && cell("A").length == 5) {
-            accounts.add(Account(group = Account.Group.TRUST,
-                    number = cell("A"),
-                    type = Account.Type.of("А"),
-                    title = cell("B")))
-        } else if (cell("A").length == 3) {
-            descList.add(AccountSubgroupDescription(Account.Group.TRUST, cell("A"), cell("B")))
-        }
-    }
-
-//    println("===== Б passive ======")
-
-    converter.streamWithountMeta(
-            { row -> row.rowNum >= TRUST_PASSIVE_START && row.sheetNum == 1 },
-            { row -> row.rowNum >= TRUST_PASSIVE_END && row.sheetNum == 1 }) {
-        if (!cell("A").isEmpty() && cell("A").length == 5) {
-            accounts.add(Account(group = Account.Group.TRUST,
-                    number = cell("A"),
-                    type = Account.Type.of("П"),
-                    title = cell("B")))
-        } else if (cell("A").length == 3) {
-            descList.add(AccountSubgroupDescription(Account.Group.TRUST, cell("A"), cell("B")))
-        }
-    }
-
-
-//    println("===== В ======")
-
-    converter.streamWithountMeta(
-            { row -> row.rowNum >= UNBALANCE_START && row.sheetNum == 1 },
-            { row -> row.rowNum >= UNBALANCE_END && row.sheetNum == 1 }) {
-        if (!cell("A").isEmpty() && cell("A").length == 5) {
-            accounts.add(Account(group = Account.Group.OFFBALANCE,
-                    number = cell("A"),
-                    type = Account.Type.of(cell("C")),
-                    title = cell("B")))
-        } else if (cell("A").length == 3) {
-            descList.add(AccountSubgroupDescription(Account.Group.OFFBALANCE, cell("A"), cell("B")))
-        }
-    }
-
-//    println("===== Г ======")
-
-    converter.streamWithountMeta(
-            { row -> row.rowNum >= OTHER_START && row.sheetNum == 1 },
-            { row -> row.rowNum >= OTHER_END && row.sheetNum == 1 }) {
-        if (!cell("A").isEmpty() && cell("A").length == 5) {
-            accounts.add(Account(group = Account.Group.OTHER,
-                    number = cell("A"),
-                    type = Account.Type.of(cell("C")),
-                    title = cell("B")))
-        } else if (cell("A").length == 3) {
-            descList.add(AccountSubgroupDescription(Account.Group.OTHER, cell("A"), cell("B")))
-        }
+//    converter.streamWithountMeta(
+//            { row -> row.rowNum >= BALANCE_START && row.sheetNum == 1 },
+//            { row -> row.rowNum >= BALANCE_END && row.sheetNum == 1 }) {
+//        if (cell("A").isEmpty() && !cell("B").isEmpty()) {
+//            accounts.add(Account(group = Account.Group.BALANCE,
+//                    number = cell("B"),
+//                    type = Account.Type.of(cell("D")),
+//                    title = cell("C")))
+//        } else if (cell("A").length == 3 && cell("D").isEmpty()) {
+//            descList.add(AccountSubgroupDescription(Account.Group.BALANCE, cell("A"), cell("C")))
+//        }
+//    }
+//
+//
+////    println("===== Б active ======")
+//
+//    converter.streamWithountMeta(
+//            { row -> row.rowNum >= TRUST_ACTIVE_START && row.sheetNum == 1 },
+//            { row -> row.rowNum >= TRUST_ACTIVE_END && row.sheetNum == 1 }) {
+//        if (!cell("A").isEmpty() && cell("A").length == 5) {
+//            accounts.add(Account(group = Account.Group.TRUST,
+//                    number = cell("A"),
+//                    type = Account.Type.of("А"),
+//                    title = cell("B")))
+//        } else if (cell("A").length == 3) {
+//            descList.add(AccountSubgroupDescription(Account.Group.TRUST, cell("A"), cell("B")))
+//        }
+//    }
+//
+////    println("===== Б passive ======")
+//
+//    converter.streamWithountMeta(
+//            { row -> row.rowNum >= TRUST_PASSIVE_START && row.sheetNum == 1 },
+//            { row -> row.rowNum >= TRUST_PASSIVE_END && row.sheetNum == 1 }) {
+//        if (!cell("A").isEmpty() && cell("A").length == 5) {
+//            accounts.add(Account(group = Account.Group.TRUST,
+//                    number = cell("A"),
+//                    type = Account.Type.of("П"),
+//                    title = cell("B")))
+//        } else if (cell("A").length == 3) {
+//            descList.add(AccountSubgroupDescription(Account.Group.TRUST, cell("A"), cell("B")))
+//        }
+//    }
+//
+//
+////    println("===== В ======")
+//
+//    converter.streamWithountMeta(
+//            { row -> row.rowNum >= UNBALANCE_START && row.sheetNum == 1 },
+//            { row -> row.rowNum >= UNBALANCE_END && row.sheetNum == 1 }) {
+//        if (!cell("A").isEmpty() && cell("A").length == 5) {
+//            accounts.add(Account(group = Account.Group.OFFBALANCE,
+//                    number = cell("A"),
+//                    type = Account.Type.of(cell("C")),
+//                    title = cell("B")))
+//        } else if (cell("A").length == 3) {
+//            descList.add(AccountSubgroupDescription(Account.Group.OFFBALANCE, cell("A"), cell("B")))
+//        }
+//    }
+//
+////    println("===== Г ======")
+//
+//    converter.streamWithountMeta(
+//            { row -> row.rowNum >= OTHER_START && row.sheetNum == 1 },
+//            { row -> row.rowNum >= OTHER_END && row.sheetNum == 1 }) {
+//        if (!cell("A").isEmpty() && cell("A").length == 5) {
+//            accounts.add(Account(group = Account.Group.OTHER,
+//                    number = cell("A"),
+//                    type = Account.Type.of(cell("C")),
+//                    title = cell("B")))
+//        } else if (cell("A").length == 3) {
+//            descList.add(AccountSubgroupDescription(Account.Group.OTHER, cell("A"), cell("B")))
+//        }
 
         val gson = GsonBuilder().setPrettyPrinting().create()
         FileWriter("C:\\staff\\Accounts.json").use {
@@ -155,4 +174,4 @@ suspend fun parseAccounts(converter: Converter) {
             gson.toJson(descList, it)
         }
     }
-}
+

@@ -2,14 +2,31 @@ package com.bogovich.xml.writer.dsl
 
 import com.sun.xml.txw2.output.IndentingXMLStreamWriter
 import mu.KLogging
+import java.io.OutputStream
+import java.nio.file.Files
+import java.nio.file.Path
+import java.util.zip.CheckedOutputStream
+import javax.xml.stream.XMLOutputFactory
 import javax.xml.stream.XMLStreamWriter
 
 
 
 class DslXMLStreamWriter(writer: XMLStreamWriter?) : IndentingXMLStreamWriter(writer), EmptyElementDsl {
+
+    constructor(path: Path):
+            this(Files.newOutputStream(path)) {
+        this.path = path
+    }
+
+    constructor(outputStream: OutputStream):
+            this(XMLOutputFactory.newInstance().createXMLStreamWriter(outputStream,"UTF-8"))
+
     companion object : KLogging()
 
     private val namespaceMapping = HashMap<String, String>()
+    lateinit var path: Path
+
+    lateinit var schemaNamespace: String
 
     fun document(init: xmlStreamLambda): DslXMLStreamWriter {
         this.writeStartDocument()
